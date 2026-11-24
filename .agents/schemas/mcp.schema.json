@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/eovares/ai-frontend-starter/main/.agents/schemas/mcp.schema.json",
+  "title": "Model Context Protocol (MCP) Configuration Schema",
+  "description": "JSON Schema validating canonical .agents/mcp.json server definitions.",
+  "type": "object",
+  "required": ["mcpServers"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI to the schema definition"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration version"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "mcpServers": {
+      "type": "object",
+      "description": "Configured MCP servers keyed by server identifier",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["command"],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Executable command (e.g. npx, uvx, node, python3, docker)"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of command line arguments"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables passed to the server process"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the server tools and context"
+          },
+          "disabled": {
+            "type": "boolean",
+            "description": "Whether the server is temporarily disabled"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -18,5 +18,15 @@
     {
       "file": ".github/copilot-instructions.md"
     }
+  ],
+  "json.schemas": [
+    {
+      "fileMatch": [".agents/registry.json"],
+      "url": "./.agents/schemas/registry.schema.json"
+    },
+    {
+      "fileMatch": [".agents/mcp.json"],
+      "url": "./.agents/schemas/mcp.schema.json"
+    }
   ]
 }

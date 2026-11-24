@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/eovares/ai-frontend-starter/main/.agents/schemas/registry.schema.json",
+  "title": "Agent Resource Registry Schema",
+  "description": "JSON Schema validating .agents/registry.json resource tracking and provenance.",
+  "type": "object",
+  "required": ["version", "resources"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI to the schema definition"
+    },
+    "version": {
+      "type": "string",
+      "description": "Schema version (semver)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the registry"
+    },
+    "resources": {
+      "type": "object",
+      "description": "Map of tracked agent resources keyed by unique resource name",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "type", "origin", "target_path"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "Unique resource identifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["skill", "agent", "instruction", "plugin", "prompt", "script", "hook"],
+            "description": "Type of agent resource"
+          },
+          "origin": {
+            "type": "string",
+            "enum": ["user", "remote"],
+            "description": "Provenance origin: user-authored or remote Git repo"
+          },
+          "author": {
+            "type": "string",
+            "description": "Author or maintainer name"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Upstream Git repository URL (for remote origin)"
+          },
+          "source_subpath": {
+            "type": "string",
+            "description": "Subdirectory inside upstream Git repo"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Git branch, tag or reference"
+          },
+          "commit": {
+            "type": "string",
+            "description": "Pinned Git commit SHA-1 hash"
+          },
+          "target_path": {
+            "type": "string",
+            "description": "Relative path to installed resource in workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO-8601 creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO-8601 last update timestamp"
+          },
+          "description": {
+            "type": "string",
+            "description": "Short summary of resource capabilities"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}
