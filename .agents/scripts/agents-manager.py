@@ -1953,6 +1953,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
         ("Claude Code", WORKSPACE_ROOT / "CLAUDE.md", "AGENTS.md"),
         ("Antigravity", WORKSPACE_ROOT / "GEMINI.md", "AGENTS.md"),
         ("Cursor", WORKSPACE_ROOT / ".cursorrules", "AGENTS.md"),
+        ("Windsurf", WORKSPACE_ROOT / ".windsurfrules", "AGENTS.md"),
         ("GitHub Copilot", WORKSPACE_ROOT / ".github" / "copilot-instructions.md", "AGENTS.md"),
         ("EditorConfig", WORKSPACE_ROOT / ".editorconfig", None),
     ]
