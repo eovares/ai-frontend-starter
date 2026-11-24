@@ -478,7 +478,8 @@ def install_from_repo(
                 shutil.copytree(source_path, target_path)
             else:
                 target_path.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source_path, target_path / source_path.name)
+                entry_file = RESOURCE_TYPES[res_type].get("entry_file", source_path.name)
+                shutil.copy2(source_path, target_path / entry_file)
         else:
             if target_path.exists():
                 if target_path.is_dir():
@@ -649,7 +650,7 @@ def cmd_sync(args: argparse.Namespace) -> None:
             continue
 
         for item in base_dir.iterdir():
-            if item.name.startswith(".") or item.name == "registry.json":
+            if item.name.startswith(".") or item.name in ("registry.json", "__pycache__") or item.name.endswith(".pyc"):
                 continue
 
             name = item.stem if not meta["is_dir"] else item.name
@@ -712,7 +713,7 @@ def cmd_list(args: argparse.Namespace) -> None:
         if not base_dir.exists():
             continue
         for item in base_dir.iterdir():
-            if item.name.startswith(".") or item.name == "registry.json":
+            if item.name.startswith(".") or item.name in ("registry.json", "__pycache__") or item.name.endswith(".pyc"):
                 continue
             name = item.stem if not meta["is_dir"] else item.name
             if name not in tracked:
@@ -816,7 +817,7 @@ def cmd_verify(args: argparse.Namespace) -> None:
         if not base_dir.exists():
             continue
         for item in base_dir.iterdir():
-            if item.name.startswith(".") or item.name == "registry.json":
+            if item.name.startswith(".") or item.name in ("registry.json", "__pycache__") or item.name.endswith(".pyc"):
                 continue
             name = item.stem if not meta["is_dir"] else item.name
             if name not in tracked:
@@ -1628,7 +1629,7 @@ def cmd_discover(args: argparse.Namespace) -> None:
                 cmd_mcp_sync(mcp_cfg)
                 print(f"[OK] Added MCP Server '{res['name']}' to .agents/mcp.json.")
             else:
-                add_remote_resource(
+                install_from_repo(
                     res_type=res["type"],
                     name=res["name"],
                     raw_url=git_url,
