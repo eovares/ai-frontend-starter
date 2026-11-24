@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "🔍 Validating agent architecture, SSOT parity & integrity..."
+python3 .agents/scripts/agents-manager.py verify

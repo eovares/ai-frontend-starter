@@ -1,0 +1,30 @@
+name: Validate Agent Resources & SSOT
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  validate-agent-architecture:
+    runs-on: ubuntu-latest
+    name: Verify Agent Health & Provenance
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: ""
+
+      - name: Verify Agent Resources Integrity
+        run: |
+          python3 .agents/scripts/agents-manager.py verify
+
+      - name: Run Environment & Architecture Doctor
+        run: |
+          python3 .agents/scripts/agents-manager.py doctor
