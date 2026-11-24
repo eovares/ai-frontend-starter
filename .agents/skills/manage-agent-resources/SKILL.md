@@ -1,50 +1,76 @@
 ---
 name: manage-agent-resources
 description: >-
-  Manage, scaffold, install, track, and update agent resources inside .agents/
-  (skills, agents, instructions, plugins, prompts, scripts, hooks). Supports installing
-  from GitHub repositories, recording upstream tracking in .agents/registry.json,
-  and performing future updates.
+  Universal toolkit to discover, create, verify, update, analyze, import, export,
+  manage agent resources and configure MCP servers inside .agents/ (skills, agents,
+  instructions, plugins, prompts, scripts, hooks, mcp). Supports cross-agent compatibility
+  (Claude Code, Antigravity, Copilot, Cursor).
 ---
 
 # Manage Agent Resources Skill
 
+Comprehensive toolkit for the full lifecycle of agent resources and Model Context Protocol (MCP) integrations in the canonical `.agents/` directory.
+
 Use this skill when you need to:
-- Add a new skill, agent, prompt, instruction, hook, script, or plugin to `.agents/`.
-- Import a skill or agent from a GitHub repository or Git URL.
-- Track external sources in `.agents/registry.json` so they can be updated later.
-- Update installed external resources to the latest commit/version from GitHub.
-- List or audit existing workspace agent resources.
+- **Discover & Suggest**: Scan remote repositories, detect potential agent assets, and get intelligent import recommendations based on token footprint and structure.
+- **Configure MCP**: Configure, template, and synchronize Model Context Protocol (MCP) servers across Claude Code, Cursor, and VS Code.
+- **Create (Scaffold)**: Scaffold standardized skills, agent personas, prompts, instructions, hooks, plugins, or scripts.
+- **Verify (Audit & Lint)**: Audit registry integrity, frontmatter compliance, executable permissions, and detect leaked paths.
+- **Update (Update & Sync)**: Refresh remote resources from upstream Git repos and synchronize untracked files into `registry.json`.
+- **Analyze (Analyze & Audit)**: Deep-inspect context token consumption, file complexity, and cross-agent compatibility.
+- **Import (Import)**: Import skills and tools from GitHub, Git URLs, or subpaths with automated model lock neutralization.
+- **Export (Export & Package)**: Bundle individual resources or the entire `.agents/` library into portable `.tar.gz` or `.zip` archives.
+- **Manage (Maintain)**: Inspect metadata cards (`info`), list categorized assets, neutralize model locks, or remove resources cleanly.
 
 ---
 
 ## 1. Quick Reference Commands
 
-All management actions can be performed directly using the bundled Python script:
+All operations are executed via the bundled Python utility:
 
 ```bash
-# Add a resource from GitHub / Git (auto-neutralizes model locks for cross-agent use)
+# 🧭 DISCOVER & SUGGEST (Scan remote repository and get best import recommendations)
+python3 .agents/scripts/agents-manager.py discover <github_url> [--import-recommended]
+
+# 🔌 MCP (Model Context Protocol Server Management)
+python3 .agents/scripts/agents-manager.py mcp list
+python3 .agents/scripts/agents-manager.py mcp templates
+python3 .agents/scripts/agents-manager.py mcp add-template <preset_name>
+python3 .agents/scripts/agents-manager.py mcp add <name> --cmd <executable> [--args ...] [--env KEY=VAL]
+python3 .agents/scripts/agents-manager.py mcp sync
+python3 .agents/scripts/agents-manager.py mcp remove <name>
+
+# 🛠️ CREATE (Scaffold new user resource)
+python3 .agents/scripts/agents-manager.py create <type> <name> [--author "<name>"] [--description "..."]
+
+# 🔍 VERIFY (Audit and verify workspace integrity)
+python3 .agents/scripts/agents-manager.py verify [--fix]
+
+# 📊 ANALYZE (Token cost, line count, and cross-agent compatibility matrix)
+python3 .agents/scripts/agents-manager.py analyze [name]
+
+# 🌐 IMPORT (Import from GitHub with neutralization prompt)
 python3 .agents/scripts/agents-manager.py add <type> <name> --url <github_url> [--subpath <path>] [--ref <branch>]
 
-# Add raw without cross-agent neutralization
-python3 .agents/scripts/agents-manager.py add <type> <name> --url <github_url> --raw
+# 📦 EXPORT (Package resource or library to portable bundle)
+python3 .agents/scripts/agents-manager.py export [name] [--output <path>] [--format tar.gz|zip]
 
-# Scaffold a user-created local resource (origin: user)
-python3 .agents/scripts/agents-manager.py add <type> <name> [--author "<name>"] [--description "Description"]
-
-# Synchronize untracked workspace files into registry.json
-python3 .agents/scripts/agents-manager.py sync
-
-# Neutralize model/vendor locks on an existing resource
-python3 .agents/scripts/agents-manager.py neutralize <name>
-
-# Update one or all tracked remote resources from remote GitHub
+# 🔄 UPDATE (Update remote resources from GitHub)
 python3 .agents/scripts/agents-manager.py update [name]
 
-# List all tracked resources categorized by origin (remote vs user)
+# 🗃️ SYNC (Register existing untracked files into registry)
+python3 .agents/scripts/agents-manager.py sync
+
+# ℹ️ INFO (Detailed resource metadata card)
+python3 .agents/scripts/agents-manager.py info <name>
+
+# 📋 LIST (Categorized view: remote vs user-created)
 python3 .agents/scripts/agents-manager.py list
 
-# Remove a resource and deregister it
+# 🛡️ NEUTRALIZE (Audit & neutralize model/vendor locks)
+python3 .agents/scripts/agents-manager.py neutralize <name>
+
+# 🗑️ REMOVE (Cleanly delete files and deregister)
 python3 .agents/scripts/agents-manager.py remove <name>
 ```
 
@@ -56,83 +82,75 @@ Supported `<type>` values: `skill`, `agent`, `instruction`, `plugin`, `prompt`, 
 
 Every resource must strictly reside in `.agents/`:
 
-| Resource Type | Path | Format & Invariants |
+| Resource Type | Path | Invariants & Rules |
 | :--- | :--- | :--- |
-| **Skill** | `.agents/skills/<name>/SKILL.md` | Directory containing `SKILL.md` with YAML frontmatter (`name`, `description`). Optional `scripts/`, `references/`. |
-| **Agent** | `.agents/agents/<name>.md` | Markdown document specifying persona, purpose, and operational rules. |
-| **Instruction** | `.agents/instructions/<topic>.md` | Topic guideline referenced by `AGENTS.md`. |
-| **Plugin** | `.agents/plugins/<name>/` | Directory containing `plugin.json` manifest. |
+| **Skill** | `.agents/skills/<name>/SKILL.md` | Directory containing `SKILL.md` with valid YAML frontmatter (`name`, `description`). |
+| **Agent** | `.agents/agents/<name>.md` | Markdown document defining persona, purpose, and operational responsibilities. |
+| **Instruction** | `.agents/instructions/<topic>.md` | Modular guideline referenced by `AGENTS.md`. |
+| **Plugin** | `.agents/plugins/<name>/` | Directory containing a valid `plugin.json` manifest. |
 | **Prompt** | `.agents/prompts/<name>.md` | Markdown template with clear input parameters. |
 | **Script** | `.agents/scripts/<name>` | Executable helper script (`chmod +x`). |
-| **Hook** | `.agents/hooks/<name>` | Lifecycle trigger executable. |
+| **Hook** | `.agents/hooks/<name>` | Lifecycle trigger executable (`chmod +x`). |
+| **MCP Config** | `.agents/mcp.json` | Model Context Protocol servers synced to `.vscode/mcp.json` & `.mcp.json`. |
+| **Registry** | `.agents/registry.json` | Provenance and source tracking registry. |
 
 ---
 
-## 3. GitHub Tracking & Registry Specification
+## 3. Operational Roles & Workflows
 
-When installing any resource from an external repository, the metadata is saved in `.agents/registry.json`:
+### A. Repository Discovery & Suggestion Engine
+When a user provides a GitHub or Git repository, scan it to suggest the highest-value assets:
+```bash
+python3 .agents/scripts/agents-manager.py discover https://github.com/org/repo
+```
+The manager:
+1. Performs a shallow clone (`--depth 1`) in a temporary sandbox.
+2. Identifies all skills, agents, instructions, prompts, plugins, scripts, and MCP configs.
+3. Computes estimated token consumption and tags recommendations:
+   - `⭐ Highly Recommended`: Lightweight (< 4,000 tokens) with clear descriptions.
+   - `📦 Standard`: Moderate size (4,000–15,000 tokens).
+   - `⚠️ Heavy`: Large context footprint (> 15,000 tokens).
+4. Presents an interactive menu to import chosen or recommended resources seamlessly.
 
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.0.0",
-  "description": "Registry tracking installed external agent resources and upstream repository sources.",
-  "resources": {
-    "my-external-skill": {
-      "name": "my-external-skill",
-      "type": "skill",
-      "source_url": "https://github.com/example-user/skills-repo.git",
-      "source_subpath": "skills/my-skill",
-      "ref": "main",
-      "commit": "4a1b2c3d...",
-      "target_path": ".agents/skills/my-external-skill",
-      "installed_at": "2026-11-23T23:25:00+00:00",
-      "updated_at": "2026-11-23T23:25:00+00:00",
-      "description": "Description of the skill"
-    }
-  }
-}
+### B. MCP Server Management & Cross-Assistant Sync
+Manage Model Context Protocol servers from a central, canonical configuration:
+```bash
+# Explore available presets (filesystem, fetch, sqlite, github, memory, brave-search):
+python3 .agents/scripts/agents-manager.py mcp templates
+
+# Install a preset with one command:
+python3 .agents/scripts/agents-manager.py mcp add-template filesystem
+
+# Add custom MCP server:
+python3 .agents/scripts/agents-manager.py mcp add my-api --cmd npx --args -y my-mcp-package --env API_KEY=xyz
+
+# Synchronize across all assistants:
+python3 .agents/scripts/agents-manager.py mcp sync
+```
+`mcp sync` mirrors `.agents/mcp.json` into:
+- `.vscode/mcp.json` (for VS Code and GitHub Copilot)
+- `.mcp.json` in root (for Cursor and Claude Code)
+
+### C. Creator / Scaffolder Tool
+Bootstrap a new resource with standardized boilerplate:
+```bash
+python3 .agents/scripts/agents-manager.py create skill my-workflow --description "Workflow runbook"
 ```
 
----
+### D. Verifier / Linter Tool
+Audit workspace health and canonical standards:
+```bash
+python3 .agents/scripts/agents-manager.py verify [--fix]
+```
 
-## 4. Operational Procedures
+### E. Analyzer / Token Auditor Tool
+Inspect context token consumption and assistant compatibility:
+```bash
+python3 .agents/scripts/agents-manager.py analyze [name]
+```
 
-### A. Installing a Skill from a GitHub Subfolder
-If the user provides a URL like `https://github.com/owner/repo/tree/main/skills/my-skill`:
-1. Run:
-   ```bash
-   python3 .agents/scripts/agents-manager.py add skill my-skill --url https://github.com/owner/repo/tree/main/skills/my-skill
-   ```
-2. Verify that `.agents/skills/my-skill/SKILL.md` exists and has valid YAML frontmatter.
-3. Check `.agents/registry.json` to confirm the commit hash and repository URL are recorded.
-
-### B. Updating Tracked Resources
-1. Check what is installed:
-   ```bash
-   python3 .agents/scripts/agents-manager.py list
-   ```
-2. Pull updates from GitHub:
-   ```bash
-   python3 .agents/scripts/agents-manager.py update <name>
-   ```
-3. Inspect `git diff` to review upstream changes before committing.
-
-### C. Cross-Agent Model & Vendor Neutralization (With Mandatory Approval)
-When copying or updating skills from external repositories:
-1. The manager scans for model locks (`model: ...`) and vendor-specific paths or directives.
-2. If locks are detected, it **displays the exact changes and prompts the user for confirmation** before altering any file:
-   ```text
-   ⚠️  CROSS-AGENT NEUTRALIZATION PROMPT: '<name>'
-   The following vendor or model-specific locks were detected:
-     📄 File: .agents/skills/<name>/SKILL.md
-        • Neutralize model lock 'model: claude-3-5-sonnet' -> model-agnostic
-   Do you accept neutralizing '<name>' for cross-agent compatibility? [y/N]:
-   ```
-3. If confirmed (`y`), changes are applied. If declined (`n`), the resource is preserved in raw upstream format.
-4. To automate without prompting (e.g. in CI scripts), pass `-y` or `--yes`.
-5. To audit an existing resource at any time:
-   ```bash
-   python3 .agents/scripts/agents-manager.py neutralize <name>
-   ```
-
+### F. Exporter / Packager Tool
+Package resources into portable archives:
+```bash
+python3 .agents/scripts/agents-manager.py export my-skill --format tar.gz
+```

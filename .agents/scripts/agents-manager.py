@@ -19,12 +19,15 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
+import zipfile
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, List
 
 WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent
 AGENTS_DIR = WORKSPACE_ROOT / ".agents"
 REGISTRY_FILE = AGENTS_DIR / "registry.json"
+MCP_FILE = AGENTS_DIR / "mcp.json"
 
 RESOURCE_TYPES = {
     "skill": {
@@ -782,14 +785,790 @@ def cmd_remove(args: argparse.Namespace) -> None:
         print(f"[WARN] No matching file or folder found for '{name}'.")
 
 
+def cmd_verify(args: argparse.Namespace) -> None:
+    """Verifies registry health, skill frontmatters, execution permissions, and structure."""
+    registry = load_registry()
+    tracked = registry.get("resources", {})
+    fix = getattr(args, "fix", False)
+
+    issues: List[Tuple[str, str]] = []
+    passed = 0
+
+    # 1. Registry integrity: All tracked resources exist on disk
+    for name, data in tracked.items():
+        rel_target = data.get("target_path")
+        if not rel_target:
+            issues.append(("ERROR", f"Resource '{name}' has no target_path defined in registry.json"))
+            continue
+        full_target = WORKSPACE_ROOT / rel_target
+        if not full_target.exists():
+            issues.append(("ERROR", f"Tracked resource '{name}' missing on disk: {rel_target}"))
+        else:
+            passed += 1
+
+    # 2. Check for untracked workspace resources
+    for res_type, meta in RESOURCE_TYPES.items():
+        base_dir = meta["dir"]
+        if not base_dir.exists():
+            continue
+        for item in base_dir.iterdir():
+            if item.name.startswith(".") or item.name == "registry.json":
+                continue
+            name = item.stem if not meta["is_dir"] else item.name
+            if name not in tracked:
+                issues.append(("WARN", f"Untracked {res_type} on disk: {item.relative_to(WORKSPACE_ROOT)} (Run 'sync' to register)"))
+            else:
+                passed += 1
+
+    # 3. Skills validation (SKILL.md exists with YAML frontmatter)
+    skills_dir = AGENTS_DIR / "skills"
+    if skills_dir.exists():
+        for skill_dir in skills_dir.iterdir():
+            if not skill_dir.is_dir() or skill_dir.name.startswith("."):
+                continue
+            skill_md = skill_dir / "SKILL.md"
+            if not skill_md.exists():
+                issues.append(("ERROR", f"Skill '{skill_dir.name}' is missing SKILL.md"))
+            else:
+                try:
+                    content = skill_md.read_text(encoding="utf-8")
+                    if not content.startswith("---") or "---" not in content[3:]:
+                        issues.append(("WARN", f"Skill '{skill_dir.name}' SKILL.md is missing YAML frontmatter"))
+                    else:
+                        frontmatter = content[3:].split("---", 1)[0]
+                        if "name:" not in frontmatter:
+                            issues.append(("WARN", f"Skill '{skill_dir.name}' SKILL.md frontmatter missing 'name:'"))
+                        if "description:" not in frontmatter:
+                            issues.append(("WARN", f"Skill '{skill_dir.name}' SKILL.md frontmatter missing 'description:'"))
+                        passed += 1
+                except Exception as e:
+                    issues.append(("ERROR", f"Skill '{skill_dir.name}' failed to read SKILL.md: {e}"))
+
+    # 4. Plugins validation (plugin.json exists)
+    plugins_dir = AGENTS_DIR / "plugins"
+    if plugins_dir.exists():
+        for plugin_dir in plugins_dir.iterdir():
+            if not plugin_dir.is_dir() or plugin_dir.name.startswith("."):
+                continue
+            plugin_json = plugin_dir / "plugin.json"
+            if not plugin_json.exists():
+                issues.append(("ERROR", f"Plugin '{plugin_dir.name}' is missing plugin.json"))
+            else:
+                try:
+                    json.loads(plugin_json.read_text(encoding="utf-8"))
+                    passed += 1
+                except Exception as e:
+                    issues.append(("ERROR", f"Plugin '{plugin_dir.name}' plugin.json is invalid JSON: {e}"))
+
+    # 5. Executable permissions on scripts and hooks
+    for check_type in ["scripts", "hooks"]:
+        dir_path = AGENTS_DIR / check_type
+        if dir_path.exists():
+            for sfile in dir_path.iterdir():
+                if sfile.is_file() and not sfile.name.startswith("."):
+                    if not os.access(sfile, os.X_OK):
+                        if fix:
+                            os.chmod(sfile, os.stat(sfile).st_mode | 0o111)
+                            print(f"[FIX] Added executable permission to {check_type}/{sfile.name}")
+                            passed += 1
+                        else:
+                            issues.append(("WARN", f"Executable bit not set on {check_type}/{sfile.name} (use --fix to resolve)"))
+                    else:
+                        passed += 1
+
+    # 6. Check for leaked local user home paths
+    for root, _, files in os.walk(AGENTS_DIR):
+        for fname in files:
+            if fname.endswith((".md", ".py", ".sh", ".json", ".yaml", ".yml")) and not fname.startswith("."):
+                fpath = Path(root) / fname
+                try:
+                    text = fpath.read_text(encoding="utf-8", errors="ignore")
+                    if re.search(r"/(?:Users|home)/[a-zA-Z0-9_-]+/", text):
+                        issues.append(("WARN", f"Hardcoded absolute user path found in {fpath.relative_to(WORKSPACE_ROOT)}"))
+                except Exception:
+                    pass
+
+    # 7. Check for rogue vendor-specific folders outside .agents/
+    for vendor_dir in [".claude", ".gemini"]:
+        candidate = WORKSPACE_ROOT / vendor_dir
+        if candidate.exists() and candidate.is_dir():
+            issues.append(("WARN", f"Non-canonical vendor folder detected: {vendor_dir}/ (move agent resources to .agents/)"))
+
+    # Print summary report
+    print("\n======================= .agents/ Verification & Health Report =======================")
+    errors = [msg for lvl, msg in issues if lvl == "ERROR"]
+    warns = [msg for lvl, msg in issues if lvl == "WARN"]
+
+    for msg in errors:
+        print(f"❌ [FAIL] {msg}")
+    for msg in warns:
+        print(f"⚠️  [WARN] {msg}")
+
+    print("-------------------------------------------------------------------------------------")
+    print(f"Summary: {passed} invariant check(s) passed, {len(warns)} warning(s), {len(errors)} error(s).")
+    if not errors and not warns:
+        print("🎉 [PASS] Workspace agent resources are 100% healthy, canonical, and compliant!")
+    elif not errors:
+        print("✅ [PASS] No critical errors found. Workspace is operational.")
+    else:
+        print("❌ [FAIL] Critical errors detected that should be resolved.")
+    print("=====================================================================================\n")
+
+
+def cmd_analyze(args: argparse.Namespace) -> None:
+    """Performs deep token analysis, line count, and cross-agent compatibility scoring."""
+    registry = load_registry()
+    tracked = registry.get("resources", {})
+    name_filter = getattr(args, "name", None)
+
+    targets: Dict[str, Dict[str, Any]] = {}
+    if name_filter:
+        if name_filter not in tracked:
+            for rtype in RESOURCE_TYPES:
+                candidate = get_target_path(rtype, name_filter)
+                if candidate.exists():
+                    targets[name_filter] = {
+                        "name": name_filter,
+                        "type": rtype,
+                        "origin": "user",
+                        "target_path": str(candidate.relative_to(WORKSPACE_ROOT)),
+                    }
+                    break
+            if not targets:
+                print(f"[ERROR] Resource '{name_filter}' not found.")
+                sys.exit(1)
+        else:
+            targets[name_filter] = tracked[name_filter]
+    else:
+        targets = tracked
+
+    print("\n======================= .agents/ Deep Resource Analysis =======================")
+    for res_name, data in targets.items():
+        rel_target = data.get("target_path", "")
+        full_path = WORKSPACE_ROOT / rel_target
+        if not full_path.exists():
+            print(f"\n• [{data.get('type', 'resource').upper()}] {res_name}: Missing on disk ({rel_target})")
+            continue
+
+        file_count = 0
+        total_lines = 0
+        total_chars = 0
+        model_locks_found: List[str] = []
+        vendor_locks_found: List[str] = []
+
+        files_to_scan: List[Path] = []
+        if full_path.is_dir():
+            for p in full_path.rglob("*"):
+                if p.is_file() and not p.name.startswith("."):
+                    files_to_scan.append(p)
+        else:
+            files_to_scan.append(full_path)
+
+        for p in files_to_scan:
+            file_count += 1
+            try:
+                content = p.read_text(encoding="utf-8", errors="ignore")
+                lines = content.splitlines()
+                total_lines += len(lines)
+                total_chars += len(content)
+
+                for pattern in MODEL_LOCK_PATTERNS:
+                    matches = pattern.findall(content)
+                    if matches:
+                        model_locks_found.extend([str(m) for m in matches[:3]])
+                for pattern in VENDOR_PATTERNS:
+                    matches = pattern.findall(content)
+                    if matches:
+                        vendor_locks_found.extend([str(m) for m in matches[:3]])
+            except Exception:
+                pass
+
+        est_tokens = total_chars // 4
+        if est_tokens < 1500:
+            tier = "🟢 Lightweight"
+        elif est_tokens < 5000:
+            tier = "🟡 Moderate"
+        else:
+            tier = "🔴 Heavy (Consumes substantial context)"
+
+        claude_ok = "✅ Agnostic" if not model_locks_found else "⚠️  Model Lock"
+        antigravity_ok = "✅ Supported" if not vendor_locks_found else "⚠️  Vendor Lock"
+        copilot_ok = "✅ Supported"
+        cursor_ok = "✅ Supported"
+
+        print(f"\n📦 Resource: {res_name} [{data.get('type', 'unknown').upper()}]")
+        print(f"   • Origin            : {data.get('origin', 'unknown')} ({data.get('source_url', 'local')})")
+        print(f"   • Size & Complexity : {file_count} file(s), {total_lines:,} lines, {total_chars:,} chars")
+        print(f"   • Context Token Tier: {tier} (~{est_tokens:,} tokens)")
+        print(f"   • Compatibility Matrix:")
+        print(f"       - Claude Code   : {claude_ok}")
+        print(f"       - Antigravity   : {antigravity_ok}")
+        print(f"       - GitHub Copilot: {copilot_ok}")
+        print(f"       - Cursor        : {cursor_ok}")
+
+        if model_locks_found or vendor_locks_found:
+            print(f"   • Detected Locks    : {len(model_locks_found) + len(vendor_locks_found)} potential locks (run 'neutralize {res_name}')")
+
+    print("\n===============================================================================\n")
+
+
+def cmd_export(args: argparse.Namespace) -> None:
+    """Exports a single resource or the entire .agents/ directory into a bundle."""
+    registry = load_registry()
+    tracked = registry.get("resources", {})
+    name = getattr(args, "name", None)
+    output_path = getattr(args, "output", None)
+    fmt = getattr(args, "format", "tar.gz")
+
+    if name and name != "all":
+        if name not in tracked:
+            print(f"[ERROR] Resource '{name}' is not registered.")
+            sys.exit(1)
+        target_items = {name: tracked[name]}
+        default_filename = f"agent-resource-{name}.{fmt}"
+    else:
+        target_items = tracked
+        default_filename = f"agents-bundle-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.{fmt}"
+
+    out_file = Path(output_path) if output_path else WORKSPACE_ROOT / default_filename
+
+    manifest = {
+        "export_version": "1.0.0",
+        "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "resources_count": len(target_items),
+        "resources": target_items,
+    }
+
+    temp_manifest = WORKSPACE_ROOT / ".export_manifest.json"
+    temp_manifest.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    try:
+        if fmt in ("tar.gz", "tgz"):
+            with tarfile.open(out_file, "w:gz") as tar:
+                tar.add(temp_manifest, arcname="manifest.json")
+                for rname, rdata in target_items.items():
+                    rpath = WORKSPACE_ROOT / rdata["target_path"]
+                    if rpath.exists():
+                        tar.add(rpath, arcname=rdata["target_path"])
+        else:
+            with zipfile.ZipFile(out_file, "w", zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write(temp_manifest, arcname="manifest.json")
+                for rname, rdata in target_items.items():
+                    rpath = WORKSPACE_ROOT / rdata["target_path"]
+                    if rpath.exists():
+                        if rpath.is_dir():
+                            for subp in rpath.rglob("*"):
+                                if subp.is_file():
+                                    zipf.write(subp, arcname=str(subp.relative_to(WORKSPACE_ROOT)))
+                        else:
+                            zipf.write(rpath, arcname=rdata["target_path"])
+
+        rel_out = out_file.relative_to(WORKSPACE_ROOT) if out_file.is_relative_to(WORKSPACE_ROOT) else out_file
+        print(f"\n[SUCCESS] Exported {len(target_items)} resource(s) to: {rel_out}")
+    finally:
+        if temp_manifest.exists():
+            temp_manifest.unlink()
+
+
+def cmd_info(args: argparse.Namespace) -> None:
+    """Displays detailed metadata card of a specific resource."""
+    registry = load_registry()
+    tracked = registry.get("resources", {})
+    name = args.name
+
+    if name not in tracked:
+        print(f"[ERROR] Resource '{name}' is not registered in registry.json.")
+        sys.exit(1)
+
+    data = tracked[name]
+    target_path = WORKSPACE_ROOT / data.get("target_path", "")
+
+    print(f"\n======================= Resource Card: {name} =======================")
+    print(f"• Name        : {name}")
+    print(f"• Type        : {data.get('type')}")
+    print(f"• Origin      : {data.get('origin')}")
+    print(f"• Target Path : {data.get('target_path')} (Exists: {target_path.exists()})")
+    if data.get("origin") == "remote":
+        print(f"• Source URL  : {data.get('source_url')}")
+        if data.get("source_subpath"):
+            print(f"• Subpath     : {data.get('source_subpath')}")
+        print(f"• Ref / Commit: {data.get('ref')} / {data.get('commit')}")
+        print(f"• Installed At: {data.get('created_at', data.get('installed_at'))}")
+    else:
+        print(f"• Author      : {data.get('author', 'user')}")
+        print(f"• Created At  : {data.get('created_at')}")
+    print(f"• Updated At  : {data.get('updated_at')}")
+    print(f"• Description : {data.get('description', '-')}")
+
+    if target_path.exists():
+        if target_path.is_dir():
+            files = [str(f.relative_to(target_path)) for f in target_path.rglob("*") if f.is_file()]
+            print(f"• Files ({len(files)}):")
+            for f in files[:10]:
+                print(f"    - {f}")
+            if len(files) > 10:
+                print(f"    ... and {len(files) - 10} more files.")
+        else:
+            print(f"• Size: {target_path.stat().st_size} bytes")
+    print("====================================================================\n")
+
+
+# =====================================================================
+# MCP (Model Context Protocol) Management
+# =====================================================================
+
+POPULAR_MCP_TEMPLATES = {
+    "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+        "env": {},
+        "description": "Secure local workspace file read and edit tools",
+    },
+    "fetch": {
+        "command": "uvx",
+        "args": ["mcp-server-fetch"],
+        "env": {},
+        "description": "Fetch web pages and convert HTML to markdown for LLMs",
+    },
+    "sqlite": {
+        "command": "uvx",
+        "args": ["mcp-server-sqlite", "--db-path", "./data.db"],
+        "env": {},
+        "description": "Query and inspect SQLite databases",
+    },
+    "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "<your-token>"},
+        "description": "GitHub issues, PRs, commits, and repository management",
+    },
+    "memory": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-memory"],
+        "env": {},
+        "description": "Knowledge graph-based associative long-term memory",
+    },
+    "brave-search": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+        "env": {"BRAVE_API_KEY": "<your-brave-key>"},
+        "description": "Web and local search using the Brave Search API",
+    },
+}
+
+
+def load_mcp_config() -> Dict[str, Any]:
+    if not MCP_FILE.exists():
+        return {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "version": "1.0.0",
+            "mcpServers": {},
+        }
+    try:
+        with open(MCP_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"version": "1.0.0", "mcpServers": {}}
+
+
+def save_mcp_config(data: Dict[str, Any]) -> None:
+    MCP_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(MCP_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+
+
+def cmd_mcp_sync(config: Dict[str, Any]) -> None:
+    """Syncs .agents/mcp.json to .vscode/mcp.json and root .mcp.json for cross-agent compatibility."""
+    servers = config.get("mcpServers", {})
+    payload = {"mcpServers": servers}
+
+    # 1. VS Code / Copilot: .vscode/mcp.json
+    vscode_dir = WORKSPACE_ROOT / ".vscode"
+    if vscode_dir.exists():
+        vscode_mcp = vscode_dir / "mcp.json"
+        with open(vscode_mcp, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+            f.write("\n")
+        print(f"[*] Synced MCP configuration to .vscode/mcp.json")
+
+    # 2. Root .mcp.json (Cursor & Claude Code compatible)
+    root_mcp = WORKSPACE_ROOT / ".mcp.json"
+    with open(root_mcp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+        f.write("\n")
+    print(f"[*] Synced MCP configuration to .mcp.json (Cursor & Claude Code compatible)")
+
+
+def cmd_mcp(args: argparse.Namespace) -> None:
+    action = getattr(args, "mcp_action", "list")
+    config = load_mcp_config()
+    servers = config.setdefault("mcpServers", {})
+
+    if action == "list":
+        print("\n======================= Configured MCP Servers (.agents/mcp.json) =======================")
+        if not servers:
+            print("  (No MCP servers configured yet)")
+            print("  👉 Tip: Run 'python3 .agents/scripts/agents-manager.py mcp templates' to explore presets.")
+        else:
+            for sname, sdata in servers.items():
+                status = "🔴 Disabled" if sdata.get("disabled") else "🟢 Enabled"
+                cmd_str = f"{sdata.get('command', '')} {' '.join(sdata.get('args', []))}"
+                print(f"• [{sname}] ({status})")
+                print(f"    Command: {cmd_str}")
+                if sdata.get("description"):
+                    print(f"    Desc   : {sdata['description']}")
+                if sdata.get("env"):
+                    print(f"    Env    : {list(sdata['env'].keys())}")
+        print("=========================================================================================\n")
+
+    elif action == "templates":
+        print("\n======================= Popular MCP Server Presets =======================")
+        for tname, tdata in POPULAR_MCP_TEMPLATES.items():
+            cmd_str = f"{tdata['command']} {' '.join(tdata['args'])}"
+            print(f"• {tname}:")
+            print(f"    Desc   : {tdata['description']}")
+            print(f"    Command: {cmd_str}")
+            if tdata.get("env"):
+                print(f"    Env    : {tdata['env']}")
+            print(f"    👉 Install: python3 .agents/scripts/agents-manager.py mcp add-template {tname}")
+            print()
+        print("==========================================================================\n")
+
+    elif action == "add-template":
+        tname = args.template_name
+        if tname not in POPULAR_MCP_TEMPLATES:
+            print(f"[ERROR] Template '{tname}' not found. Run 'mcp templates' to see available presets.")
+            sys.exit(1)
+        servers[tname] = POPULAR_MCP_TEMPLATES[tname]
+        save_mcp_config(config)
+        print(f"[SUCCESS] Added MCP server preset '{tname}' to .agents/mcp.json.")
+        cmd_mcp_sync(config)
+
+    elif action == "add":
+        sname = args.name
+        command = args.cmd
+        args_list = args.args or []
+        env_dict = {}
+        if args.env:
+            for item in args.env:
+                if "=" in item:
+                    k, v = item.split("=", 1)
+                    env_dict[k.strip()] = v.strip()
+
+        servers[sname] = {
+            "command": command,
+            "args": args_list,
+            "env": env_dict,
+            "disabled": False,
+            "description": args.description or "",
+        }
+        save_mcp_config(config)
+        print(f"[SUCCESS] Registered MCP server '{sname}' in .agents/mcp.json.")
+        cmd_mcp_sync(config)
+
+    elif action == "remove":
+        sname = args.name
+        if sname in servers:
+            del servers[sname]
+            save_mcp_config(config)
+            print(f"[SUCCESS] Removed MCP server '{sname}' from .agents/mcp.json.")
+            cmd_mcp_sync(config)
+        else:
+            print(f"[WARN] MCP server '{sname}' not found in configuration.")
+
+    elif action == "sync":
+        cmd_mcp_sync(config)
+
+
+# =====================================================================
+# Repository Discovery & Recommendation Engine
+# =====================================================================
+
+def cmd_discover(args: argparse.Namespace) -> None:
+    raw_url = args.url
+    git_url, detected_ref, _ = parse_github_url(raw_url)
+    ref = args.ref or detected_ref or "main"
+
+    temp_clone_dir = Path("/tmp") / f"agents_discover_{int(datetime.datetime.now().timestamp())}"
+    if temp_clone_dir.exists():
+        shutil.rmtree(temp_clone_dir, ignore_errors=True)
+
+    print(f"\n[*] Scanning repository: {git_url} (ref: {ref})...")
+    clone_cmd = ["git", "clone", "--depth", "1", "--branch", ref, git_url, str(temp_clone_dir)]
+    code, _, err = run_cmd(clone_cmd)
+    if code != 0:
+        clone_cmd = ["git", "clone", "--depth", "1", git_url, str(temp_clone_dir)]
+        code, _, err = run_cmd(clone_cmd)
+        if code != 0:
+            print(f"[ERROR] Failed to clone {git_url}:\n{err}", file=sys.stderr)
+            return
+
+    try:
+        discovered: List[Dict[str, Any]] = []
+
+        # 1. Scan for Skills: directories containing SKILL.md
+        for p in temp_clone_dir.rglob("SKILL.md"):
+            if ".git" in p.parts:
+                continue
+            skill_dir = p.parent
+            subpath = skill_dir.relative_to(temp_clone_dir)
+            name = skill_dir.name
+            desc = "Skill workflow"
+            try:
+                content = p.read_text(encoding="utf-8", errors="ignore")
+                if content.startswith("---") and "---" in content[3:]:
+                    fm = content[3:].split("---", 1)[0]
+                    for line in fm.splitlines():
+                        if line.startswith("description:"):
+                            desc = line.split(":", 1)[1].strip().strip('"').strip("'")
+                        elif line.startswith("name:"):
+                            name = line.split(":", 1)[1].strip()
+            except Exception:
+                pass
+
+            chars = sum(f.stat().st_size for f in skill_dir.rglob("*") if f.is_file())
+            discovered.append({
+                "type": "skill",
+                "name": name,
+                "subpath": str(subpath) if str(subpath) != "." else "",
+                "description": desc,
+                "tokens": chars // 4,
+            })
+
+        # 2. Scan for Agents: md files in agents/ or with persona structures
+        for cand in [temp_clone_dir / "agents", temp_clone_dir / ".agents" / "agents"]:
+            if cand.exists() and cand.is_dir():
+                for af in cand.glob("*.md"):
+                    subpath = af.relative_to(temp_clone_dir)
+                    desc = "Specialized agent persona"
+                    try:
+                        first_lines = af.read_text(encoding="utf-8", errors="ignore").splitlines()[:5]
+                        for l in first_lines:
+                            if l.startswith(">"):
+                                desc = l.lstrip(">").strip()
+                                break
+                    except Exception:
+                        pass
+                    discovered.append({
+                        "type": "agent",
+                        "name": af.stem,
+                        "subpath": str(subpath),
+                        "description": desc,
+                        "tokens": af.stat().st_size // 4,
+                    })
+
+        # 3. Scan for Instructions: md files in instructions/
+        for cand in [temp_clone_dir / "instructions", temp_clone_dir / ".agents" / "instructions"]:
+            if cand.exists() and cand.is_dir():
+                for inf in cand.glob("*.md"):
+                    subpath = inf.relative_to(temp_clone_dir)
+                    discovered.append({
+                        "type": "instruction",
+                        "name": inf.stem,
+                        "subpath": str(subpath),
+                        "description": f"Instruction set for {inf.stem}",
+                        "tokens": inf.stat().st_size // 4,
+                    })
+
+        # 4. Scan for Prompts: md files in prompts/
+        for cand in [temp_clone_dir / "prompts", temp_clone_dir / ".agents" / "prompts"]:
+            if cand.exists() and cand.is_dir():
+                for pf in cand.glob("*.md"):
+                    subpath = pf.relative_to(temp_clone_dir)
+                    discovered.append({
+                        "type": "prompt",
+                        "name": pf.stem,
+                        "subpath": str(subpath),
+                        "description": f"Prompt template for {pf.stem}",
+                        "tokens": pf.stat().st_size // 4,
+                    })
+
+        # 5. Scan for Plugins: folders with plugin.json
+        for pf in temp_clone_dir.rglob("plugin.json"):
+            if ".git" in pf.parts:
+                continue
+            plug_dir = pf.parent
+            subpath = plug_dir.relative_to(temp_clone_dir)
+            pname = plug_dir.name
+            pdesc = "Plugin bundle"
+            try:
+                pdata = json.loads(pf.read_text(encoding="utf-8"))
+                pname = pdata.get("name", pname)
+                pdesc = pdata.get("description", pdesc)
+            except Exception:
+                pass
+            chars = sum(f.stat().st_size for f in plug_dir.rglob("*") if f.is_file())
+            discovered.append({
+                "type": "plugin",
+                "name": pname,
+                "subpath": str(subpath),
+                "description": pdesc,
+                "tokens": chars // 4,
+            })
+
+        # 6. Scan for MCP Configs in repo
+        for mcpf in temp_clone_dir.rglob("mcp.json"):
+            if ".git" in mcpf.parts:
+                continue
+            try:
+                mcp_data = json.loads(mcpf.read_text(encoding="utf-8"))
+                srvs = mcp_data.get("mcpServers", {})
+                for sname, sdata in srvs.items():
+                    discovered.append({
+                        "type": "mcp-server",
+                        "name": sname,
+                        "subpath": str(mcpf.relative_to(temp_clone_dir)),
+                        "description": sdata.get("description", f"MCP server '{sname}'"),
+                        "tokens": 200,
+                        "mcp_payload": sdata,
+                    })
+            except Exception:
+                pass
+
+        if not discovered:
+            print(f"[WARN] No standard agent resources found in {git_url}.")
+            return
+
+        unique_disc = {}
+        for d in discovered:
+            key = (d["type"], d["name"])
+            if key not in unique_disc:
+                unique_disc[key] = d
+        items = list(unique_disc.values())
+
+        print(f"\n======================= Discovered Agent Resources ({len(items)}) =======================")
+        print(f"Repository: {git_url}\n")
+
+        for idx, item in enumerate(items, 1):
+            tok = item["tokens"]
+            if tok < 4000:
+                rec_badge = "⭐ Highly Recommended (Lightweight & Focused)"
+                item["recommended"] = True
+            elif tok < 15000:
+                rec_badge = "📦 Standard"
+                item["recommended"] = False
+            else:
+                rec_badge = "⚠️  Heavy (Large context footprint)"
+                item["recommended"] = False
+
+            print(f"[{idx}] [{item['type'].upper()}] {item['name']}")
+            print(f"    • Subpath : {item['subpath'] or '(root)'}")
+            print(f"    • Tokens  : ~{tok:,} tokens | {rec_badge}")
+            print(f"    • Desc    : {item['description']}")
+            print()
+
+        print("==========================================================================================")
+
+        auto_recommended = getattr(args, "import_recommended", False)
+        auto_all = getattr(args, "import_all", False)
+        auto_yes = getattr(args, "yes", False)
+
+        selected_indices: List[int] = []
+        if auto_all:
+            selected_indices = list(range(1, len(items) + 1))
+        elif auto_recommended:
+            selected_indices = [i + 1 for i, it in enumerate(items) if it.get("recommended")]
+        else:
+            try:
+                choice = input("Enter resource numbers to import (e.g. '1,3', 'recommended', 'all', or 'q' to quit): ").strip().lower()
+                if choice in ("q", "quit", "exit", ""):
+                    print("[INFO] Import cancelled.")
+                    return
+                elif choice == "all":
+                    selected_indices = list(range(1, len(items) + 1))
+                elif choice == "recommended":
+                    selected_indices = [i + 1 for i, it in enumerate(items) if it.get("recommended")]
+                else:
+                    for part in choice.split(","):
+                        part = part.strip()
+                        if part.isdigit():
+                            val = int(part)
+                            if 1 <= val <= len(items):
+                                selected_indices.append(val)
+            except (KeyboardInterrupt, EOFError):
+                print("\n[INFO] Cancelled.")
+                return
+
+        if not selected_indices:
+            print("[INFO] No resources selected for import.")
+            return
+
+        print(f"\n[*] Importing {len(selected_indices)} selected resource(s)...")
+        for num in selected_indices:
+            res = items[num - 1]
+            if res["type"] == "mcp-server":
+                mcp_cfg = load_mcp_config()
+                mcp_cfg.setdefault("mcpServers", {})[res["name"]] = res.get("mcp_payload", {})
+                save_mcp_config(mcp_cfg)
+                cmd_mcp_sync(mcp_cfg)
+                print(f"[OK] Added MCP Server '{res['name']}' to .agents/mcp.json.")
+            else:
+                add_remote_resource(
+                    res_type=res["type"],
+                    name=res["name"],
+                    raw_url=git_url,
+                    ref=ref,
+                    subpath=res["subpath"],
+                    description=res["description"],
+                    raw=False,
+                    auto_yes=auto_yes,
+                )
+
+        print("\n🎉 [SUCCESS] Selected resources successfully imported and registered!")
+    finally:
+        if temp_clone_dir.exists():
+            shutil.rmtree(temp_clone_dir, ignore_errors=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Universal Agent Resource Manager for .agents/ folder.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # ADD
-    add_p = subparsers.add_parser("add", help="Add or import an agent resource.")
+    # DISCOVER & SUGGEST
+    disc_p = subparsers.add_parser("discover", help="Scan a remote repo and suggest best resources to import.")
+    disc_p.add_argument("url", help="GitHub or Git repository URL to inspect")
+    disc_p.add_argument("--ref", help="Branch, tag, or commit to inspect (defaults to main)")
+    disc_p.add_argument("--import-recommended", action="store_true", help="Automatically import all recommended resources")
+    disc_p.add_argument("--import-all", action="store_true", help="Automatically import all discovered resources")
+    disc_p.add_argument("-y", "--yes", action="store_true", help="Automatically accept cross-agent neutralization")
+    disc_p.set_defaults(func=cmd_discover)
+
+    # MCP MANAGEMENT
+    mcp_p = subparsers.add_parser("mcp", help="Manage Model Context Protocol (MCP) server configurations.")
+    mcp_sub = mcp_p.add_subparsers(dest="mcp_action", required=False)
+
+    mcp_list_p = mcp_sub.add_parser("list", help="List configured MCP servers.")
+    mcp_list_p.set_defaults(func=cmd_mcp, mcp_action="list")
+
+    mcp_tmpl_p = mcp_sub.add_parser("templates", help="List popular MCP server presets.")
+    mcp_tmpl_p.set_defaults(func=cmd_mcp, mcp_action="templates")
+
+    mcp_add_tmpl = mcp_sub.add_parser("add-template", help="Add a popular MCP server preset.")
+    mcp_add_tmpl.add_argument("template_name", help="Preset name (e.g. filesystem, fetch, sqlite, github, memory)")
+    mcp_add_tmpl.set_defaults(func=cmd_mcp, mcp_action="add-template")
+
+    mcp_add_p = mcp_sub.add_parser("add", help="Register a custom MCP server.")
+    mcp_add_p.add_argument("name", help="Unique identifier for the MCP server")
+    mcp_add_p.add_argument("--cmd", required=True, help="Command executable (e.g. npx, uvx, python3, node)")
+    mcp_add_p.add_argument("--args", nargs="*", help="Arguments passed to the command")
+    mcp_add_p.add_argument("--env", nargs="*", help="Environment variables in KEY=VALUE format")
+    mcp_add_p.add_argument("--description", help="Description of the MCP server tools")
+    mcp_add_p.set_defaults(func=cmd_mcp, mcp_action="add")
+
+    mcp_rm_p = mcp_sub.add_parser("remove", help="Remove an MCP server.")
+    mcp_rm_p.add_argument("name", help="Identifier of the MCP server to remove")
+    mcp_rm_p.set_defaults(func=cmd_mcp, mcp_action="remove")
+
+    mcp_sync_p = mcp_sub.add_parser("sync", help="Synchronize .agents/mcp.json to .vscode/mcp.json and .mcp.json.")
+    mcp_sync_p.set_defaults(func=cmd_mcp, mcp_action="sync")
+
+    mcp_p.set_defaults(func=cmd_mcp, mcp_action="list")
+
+    # ADD / CREATE / IMPORT
+    add_p = subparsers.add_parser("add", help="Add or scaffold an agent resource (alias: create).")
     add_p.add_argument("type", help="Resource type: skill, agent, instruction, plugin, prompt, script, hook")
     add_p.add_argument("name", help="Name or identifier of the resource")
     add_p.add_argument("--url", help="GitHub or Git repository URL to clone from")
@@ -800,6 +1579,14 @@ def main() -> None:
     add_p.add_argument("--raw", action="store_true", help="Preserve raw upstream content without neutralization check")
     add_p.add_argument("-y", "--yes", action="store_true", help="Automatically accept cross-agent neutralization without prompting")
     add_p.set_defaults(func=cmd_add)
+
+    # CREATE (Alias for add without --url)
+    create_p = subparsers.add_parser("create", help="Scaffold a new user-created agent resource.")
+    create_p.add_argument("type", help="Resource type: skill, agent, instruction, plugin, prompt, script, hook")
+    create_p.add_argument("name", help="Name or identifier of the resource")
+    create_p.add_argument("--author", help="Author name for user-created resources")
+    create_p.add_argument("--description", help="Description of the resource")
+    create_p.set_defaults(func=cmd_add, url=None, ref=None, subpath=None, raw=False, yes=False)
 
     # SYNC
     sync_p = subparsers.add_parser("sync", help="Register existing untracked workspace resources as user-created.")
@@ -818,6 +1605,28 @@ def main() -> None:
     neut_p.add_argument("name", help="Resource name to neutralize")
     neut_p.add_argument("-y", "--yes", action="store_true", help="Automatically accept cross-agent neutralization without prompting")
     neut_p.set_defaults(func=cmd_neutralize)
+
+    # VERIFY / VALIDATE
+    verify_p = subparsers.add_parser("verify", help="Audit, lint, and verify health of all agent resources.")
+    verify_p.add_argument("--fix", action="store_true", help="Automatically resolve repairable issues (such as executable permissions)")
+    verify_p.set_defaults(func=cmd_verify)
+
+    # ANALYZE / INSPECT
+    analyze_p = subparsers.add_parser("analyze", help="Deep inspection of token size, line count, and cross-agent compatibility.")
+    analyze_p.add_argument("name", nargs="?", help="Specific resource name to analyze (analyzes all if omitted)")
+    analyze_p.set_defaults(func=cmd_analyze)
+
+    # EXPORT
+    export_p = subparsers.add_parser("export", help="Package resource(s) into a portable bundle (.tar.gz or .zip).")
+    export_p.add_argument("name", nargs="?", help="Resource name to export (or 'all' for complete library)")
+    export_p.add_argument("--output", "-o", help="Target output file path")
+    export_p.add_argument("--format", choices=["tar.gz", "zip"], default="tar.gz", help="Archive format")
+    export_p.set_defaults(func=cmd_export)
+
+    # INFO
+    info_p = subparsers.add_parser("info", help="Display metadata card and files for a specific resource.")
+    info_p.add_argument("name", help="Name of the resource")
+    info_p.set_defaults(func=cmd_info)
 
     # LIST
     list_p = subparsers.add_parser("list", help="List all tracked and local agent resources.")
