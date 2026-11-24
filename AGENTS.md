@@ -52,6 +52,7 @@ When creating, reading, or maintaining agent resources, assistants must strictly
 | **Prompts**      | `.agents/prompts/<prompt-name>.md`     | Reusable prompt templates, query structures, and tasks.        |
 | **Scripts**      | `.agents/scripts/<script-name>`        | Project automation and helper scripts executed by agents.      |
 | **Hooks**        | `.agents/hooks/`                       | Lifecycle triggers (e.g., pre-tool/post-tool execution hooks). |
+| **MCP Servers**  | `.agents/mcp.json`                     | Model Context Protocol (MCP) server definitions synced to all AI tools. |
 | **Registry**     | `.agents/registry.json`                | Source registry tracking user-created items & upstream GitHub repositories. |
 
 Assistants must never create vendor-specific folders (e.g., `.claude/skills/`, `.gemini/agents/`) in this workspace. All AI resources reside under `.agents/`.
@@ -62,4 +63,6 @@ All agent resources must be recorded in `.agents/registry.json`:
 1. **User-Created Resources (`origin: "user"`)**: Records author, creation date, target path, and description.
 2. **External / GitHub Resources (`origin: "remote"`)**: Records upstream Git URL, subpath, branch/ref, commit hash, installation path, and timestamps for seamless future updates.
 3. **Cross-Agent Neutrality & Mandatory User Confirmation**: Imported skills and resources must retain functionality while neutralizing hardcoded LLM model locks (`model: ...`) or vendor-specific directories (`.claude/`, `.gemini/`) to run agnostically on **Claude Code**, **Antigravity**, **GitHub Copilot**, and **Cursor**. Assistants and scripts must always prompt the user with a preview of changes to accept or decline before applying neutralization.
-4. Use the specialized agent (`.agents/agents/agents-manager.md`) and automation tool (`python3 .agents/scripts/agents-manager.py`) to add, sync, neutralize, list, update, and manage workspace resources.
+4. **English for All AI Artifacts**: Write all AI configurations, instructions, rules, prompts, and skills strictly in English. English produces optimal tokenization, clearer instruction following, and lower token consumption across modern LLMs.
+5. **Agentic Mode MCP Synchronization**: When configuring or updating MCP tools in agentic mode, assistants must strictly treat `.agents/mcp.json` as the canonical SSOT (via `python3 .agents/scripts/agents-manager.py mcp ...`) and ensure adapters (`.vscode/mcp.json` and `.mcp.json`) are automatically kept synchronized in lockstep, preserving all cross-agent neutrality and English language standards.
+6. Use the specialized agent (`.agents/agents/agents-manager.md`) and automation tool (`python3 .agents/scripts/agents-manager.py`) to discover external repository resources, manage MCP servers, create, verify, update, analyze, import, export, and maintain workspace resources.
