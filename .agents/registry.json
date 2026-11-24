@@ -527,6 +527,91 @@
       "created_at": "2026-11-24T16:17:18.776472+00:00",
       "updated_at": "2026-11-24T16:17:18.776472+00:00",
       "description": "Official Figma remote MCP server for design context, canvas automation, and Code Connect"
+    },
+    "playwright": {
+      "name": "playwright",
+      "type": "mcp",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/mcp.json",
+      "created_at": "2026-11-24T19:51:16.318892+00:00",
+      "updated_at": "2026-11-24T19:51:16.318892+00:00",
+      "description": "Official Playwright MCP server for browser automation, web testing, and accessibility-based interaction"
+    },
+    "playwright-cli": {
+      "name": "playwright-cli",
+      "type": "skill",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/skills/playwright-cli",
+      "created_at": "2026-11-24T20:05:00.354912+00:00",
+      "updated_at": "2026-11-24T20:05:00.354912+00:00",
+      "description": "Automate browser interactions, test web pages and work with Playwright tests."
+    },
+    "playwright-typescript": {
+      "name": "playwright-typescript",
+      "type": "instruction",
+      "origin": "remote",
+      "source_url": "https://github.com/github/awesome-copilot.git",
+      "source_subpath": "instructions/playwright-typescript.instructions.md",
+      "ref": "main",
+      "commit": "f10fdb8b2660ce85c98f220b2f1ca24653768a5c",
+      "target_path": ".agents/instructions/playwright-typescript.md",
+      "created_at": "2026-11-24T20:20:01.571740+00:00",
+      "updated_at": "2026-11-24T20:20:01.571740+00:00",
+      "description": "Playwright TypeScript test generation and best practices instructions"
+    },
+    "playwright-generate-test": {
+      "name": "playwright-generate-test",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/github/awesome-copilot.git",
+      "source_subpath": "skills/playwright-generate-test",
+      "ref": "main",
+      "commit": "f10fdb8b2660ce85c98f220b2f1ca24653768a5c",
+      "target_path": ".agents/skills/playwright-generate-test",
+      "created_at": "2026-11-24T20:20:51.229253+00:00",
+      "updated_at": "2026-11-24T20:20:51.229253+00:00",
+      "description": "Generate a Playwright test based on a scenario using Playwright MCP"
+    },
+    "playwright-explore-website": {
+      "name": "playwright-explore-website",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/github/awesome-copilot.git",
+      "source_subpath": "skills/playwright-explore-website",
+      "ref": "main",
+      "commit": "f10fdb8b2660ce85c98f220b2f1ca24653768a5c",
+      "target_path": ".agents/skills/playwright-explore-website",
+      "created_at": "2026-11-24T20:21:44.965659+00:00",
+      "updated_at": "2026-11-24T20:21:44.965659+00:00",
+      "description": "Website exploration for testing using Playwright MCP"
+    },
+    "devtools-regression-investigator": {
+      "name": "devtools-regression-investigator",
+      "type": "agent",
+      "origin": "remote",
+      "source_url": "https://github.com/github/awesome-copilot.git",
+      "source_subpath": "agents/devtools-regression-investigator.agent.md",
+      "ref": "main",
+      "commit": "f10fdb8b2660ce85c98f220b2f1ca24653768a5c",
+      "target_path": ".agents/agents/devtools-regression-investigator.md",
+      "created_at": "2026-11-24T20:22:32.465981+00:00",
+      "updated_at": "2026-11-24T20:22:32.465981+00:00",
+      "description": "Browser regression specialist for reproducing broken user flows, collecting console/network evidence, and narrowing root causes with DevTools MCP"
+    },
+    "a11y": {
+      "name": "a11y",
+      "type": "instruction",
+      "origin": "remote",
+      "source_url": "https://github.com/github/awesome-copilot.git",
+      "source_subpath": "instructions/a11y.instructions.md",
+      "ref": "main",
+      "commit": "f10fdb8b2660ce85c98f220b2f1ca24653768a5c",
+      "target_path": ".agents/instructions/a11y.md",
+      "created_at": "2026-11-24T20:41:14.442590+00:00",
+      "updated_at": "2026-11-24T20:41:14.442590+00:00",
+      "description": ""
     }
   }
 }
