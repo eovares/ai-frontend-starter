@@ -32,7 +32,7 @@
           },
           "type": {
             "type": "string",
-            "enum": ["skill", "agent", "instruction", "plugin", "prompt", "script", "hook"],
+            "enum": ["skill", "agent", "instruction", "plugin", "prompt", "script", "hook", "schema", "mcp"],
             "description": "Type of agent resource"
           },
           "origin": {

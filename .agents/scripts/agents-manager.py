@@ -69,6 +69,16 @@ RESOURCE_TYPES = {
         "is_dir": False,
         "extension": "",
     },
+    "schema": {
+        "dir": AGENTS_DIR / "schemas",
+        "is_dir": False,
+        "extension": ".schema.json",
+    },
+    "mcp": {
+        "dir": AGENTS_DIR,
+        "is_dir": False,
+        "file": MCP_FILE,
+    },
 }
 
 TYPE_ALIASES = {
@@ -79,6 +89,13 @@ TYPE_ALIASES = {
     "prompts": "prompt",
     "scripts": "script",
     "hooks": "hook",
+    "schemas": "schema",
+    "schema": "schema",
+    "mcp": "mcp",
+    "mcps": "mcp",
+    "mcp-server": "mcp",
+    "mcp-servers": "mcp",
+    "mcpserver": "mcp",
 }
 
 
@@ -154,10 +171,12 @@ def run_cmd(cmd: list, cwd: Optional[Path] = None) -> Tuple[int, str, str]:
 
 
 def get_target_path(res_type: str, name: str) -> Path:
+    if res_type == "mcp":
+        return MCP_FILE
     meta = RESOURCE_TYPES[res_type]
     base_dir = meta["dir"]
     base_dir.mkdir(parents=True, exist_ok=True)
-    if meta["is_dir"]:
+    if meta.get("is_dir"):
         return base_dir / name
     else:
         ext = meta.get("extension", "")
@@ -417,6 +436,36 @@ echo "Executing {name}..."
         target.chmod(0o755)
         return target
 
+    elif res_type == "schema":
+        schema_obj = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": f"./schemas/{name}.schema.json",
+            "title": f"{name.replace('-', ' ').title()} Schema",
+            "description": clean_desc or f"JSON Schema definition for {name}",
+            "type": "object",
+            "properties": {},
+            "additionalProperties": True,
+        }
+        with open(target, "w", encoding="utf-8") as f:
+            json.dump(schema_obj, f, indent=2)
+            f.write("\n")
+        return target
+
+    elif res_type == "mcp":
+        mcp_cfg = load_mcp_config()
+        servers = mcp_cfg.setdefault("mcpServers", {})
+        if name not in servers:
+            servers[name] = {
+                "command": "npx",
+                "args": ["-y", f"@modelcontextprotocol/server-{name}"],
+                "env": {},
+                "disabled": False,
+                "description": clean_desc or f"Custom MCP server '{name}'",
+            }
+            save_mcp_config(mcp_cfg)
+            cmd_mcp_sync(mcp_cfg)
+        return MCP_FILE
+
     return target
 
 
@@ -468,10 +517,58 @@ def install_from_repo(
         return False
 
     target_path = get_target_path(res_type, name)
-    is_dir = RESOURCE_TYPES[res_type]["is_dir"]
+    is_dir = RESOURCE_TYPES[res_type].get("is_dir", False)
+    desc = description
 
     try:
-        if is_dir:
+        if res_type == "mcp":
+            mcp_source = None
+            if effective_subpath:
+                cand = temp_clone_dir / effective_subpath
+                if cand.is_file():
+                    mcp_source = cand
+                elif cand.is_dir():
+                    for sf in [cand / "mcp.json", cand / ".agents" / "mcp.json"]:
+                        if sf.exists():
+                            mcp_source = sf
+                            break
+            if not mcp_source:
+                for sf in temp_clone_dir.rglob("mcp.json"):
+                    if ".git" in sf.parts:
+                        continue
+                    mcp_source = sf
+                    break
+
+            server_payload = None
+            if mcp_source and mcp_source.exists():
+                try:
+                    mcp_data = json.loads(mcp_source.read_text(encoding="utf-8"))
+                    srvs = mcp_data.get("mcpServers", {})
+                    if name in srvs:
+                        server_payload = srvs[name]
+                    elif len(srvs) == 1:
+                        server_payload = list(srvs.values())[0]
+                    elif "command" in mcp_data:
+                        server_payload = mcp_data
+                except Exception as e:
+                    print(f"[WARN] Failed parsing {mcp_source}: {e}")
+
+            if not server_payload:
+                server_payload = {
+                    "command": "npx",
+                    "args": ["-y", name],
+                    "env": {},
+                    "disabled": False,
+                    "description": description or f"Imported MCP server '{name}' from {git_url}",
+                }
+
+            desc = desc or server_payload.get("description", f"MCP server '{name}'")
+            mcp_cfg = load_mcp_config()
+            mcp_cfg.setdefault("mcpServers", {})[name] = server_payload
+            save_mcp_config(mcp_cfg)
+            cmd_mcp_sync(mcp_cfg)
+            target_path = MCP_FILE
+        elif is_dir:
             if target_path.exists():
                 shutil.rmtree(target_path)
             if source_path.is_dir():
@@ -489,14 +586,31 @@ def install_from_repo(
             if source_path.is_file():
                 shutil.copy2(source_path, target_path)
             else:
-                default_file = source_path / f"{name}.md"
-                if not default_file.exists():
-                    files = [f for f in source_path.iterdir() if f.is_file()]
+                candidates = []
+                if res_type in ("agent", "instruction", "prompt"):
+                    candidates = [source_path / f"{name}.md", source_path / f"{res_type}.md", source_path / f"{name}.txt"]
+                elif res_type == "schema":
+                    candidates = [source_path / f"{name}.schema.json", source_path / f"{name}.json", source_path / "schema.json"]
+                elif res_type in ("script", "hook"):
+                    candidates = [source_path / f"{name}.py", source_path / f"{name}.sh", source_path / f"{name}.bash", source_path / name]
+
+                default_file = None
+                for cand in candidates:
+                    if cand.exists() and cand.is_file():
+                        default_file = cand
+                        break
+
+                if not default_file:
+                    files = [f for f in source_path.iterdir() if f.is_file() and not f.name.startswith(".")]
                     default_file = files[0] if files else None
+
                 if default_file:
                     shutil.copy2(default_file, target_path)
                 else:
                     shutil.copytree(source_path, target_path)
+
+            if res_type in ("script", "hook") and target_path.exists() and target_path.is_file():
+                target_path.chmod(target_path.stat().st_mode | 0o111)
     except Exception as e:
         print(f"[ERROR] Failed copying resource to {target_path}: {e}", file=sys.stderr)
         shutil.rmtree(temp_clone_dir, ignore_errors=True)
@@ -505,7 +619,7 @@ def install_from_repo(
     shutil.rmtree(temp_clone_dir, ignore_errors=True)
 
     # Cross-Agent Neutralization with confirmation prompt
-    if not raw:
+    if not raw and res_type not in ("mcp", "schema") and target_path.exists():
         prompt_and_apply_neutralization(target_path, name, auto_yes=auto_yes)
 
     # Register in registry.json as remote
@@ -524,7 +638,7 @@ def install_from_repo(
         "target_path": str(target_path.relative_to(WORKSPACE_ROOT)),
         "created_at": existing_entry.get("created_at", now_iso),
         "updated_at": now_iso,
-        "description": description or existing_entry.get("description", ""),
+        "description": desc or description or existing_entry.get("description", ""),
     }
     registry.setdefault("resources", {})[name] = entry
     save_registry(registry)
@@ -645,17 +759,26 @@ def cmd_sync(args: argparse.Namespace) -> None:
     added_count = 0
 
     for res_type, meta in RESOURCE_TYPES.items():
+        if res_type == "mcp":
+            continue
         base_dir = meta["dir"]
         if not base_dir.exists():
             continue
 
         for item in base_dir.iterdir():
-            if item.name.startswith(".") or item.name in ("registry.json", "__pycache__") or item.name.endswith(".pyc"):
+            if item.name.startswith(".") or item.name in ("registry.json", "mcp.json", "aiignore", "__pycache__") or item.name.endswith(".pyc"):
                 continue
 
             name = item.stem if not meta["is_dir"] else item.name
+            if res_type == "schema" and name.endswith(".schema"):
+                name = name[:-7]
+
             if name in resources:
-                continue
+                existing_type = resources[name].get("type")
+                if existing_type != res_type:
+                    name = f"{name}-{res_type}"
+                if name in resources:
+                    continue
 
             desc = extract_description(item) or f"Custom {res_type} in workspace"
             rel_path = str(item.relative_to(WORKSPACE_ROOT))
@@ -672,6 +795,27 @@ def cmd_sync(args: argparse.Namespace) -> None:
             }
             added_count += 1
             print(f"[SYNC] Registered existing {res_type} '{name}' as user resource (author: {author})")
+
+    # Sync MCP servers in .agents/mcp.json
+    if MCP_FILE.exists():
+        try:
+            mcp_cfg = load_mcp_config()
+            for sname, sdata in mcp_cfg.get("mcpServers", {}).items():
+                if sname not in resources:
+                    resources[sname] = {
+                        "name": sname,
+                        "type": "mcp",
+                        "origin": "user",
+                        "author": author,
+                        "target_path": str(MCP_FILE.relative_to(WORKSPACE_ROOT)),
+                        "created_at": now_iso,
+                        "updated_at": now_iso,
+                        "description": sdata.get("description", f"MCP server '{sname}'"),
+                    }
+                    added_count += 1
+                    print(f"[SYNC] Registered existing mcp server '{sname}' as user resource (author: {author})")
+        except Exception:
+            pass
 
     save_registry(registry)
     print(f"\n[OK] Sync complete. Added {added_count} untracked resource(s) to registry.json.")
@@ -709,15 +853,28 @@ def cmd_list(args: argparse.Namespace) -> None:
 
     unregistered = []
     for res_type, meta in RESOURCE_TYPES.items():
+        if res_type == "mcp":
+            continue
         base_dir = meta["dir"]
         if not base_dir.exists():
             continue
         for item in base_dir.iterdir():
-            if item.name.startswith(".") or item.name in ("registry.json", "__pycache__") or item.name.endswith(".pyc"):
+            if item.name.startswith(".") or item.name in ("registry.json", "mcp.json", "aiignore", "__pycache__") or item.name.endswith(".pyc"):
                 continue
             name = item.stem if not meta["is_dir"] else item.name
-            if name not in tracked:
+            if res_type == "schema" and name.endswith(".schema"):
+                name = name[:-7]
+            if name not in tracked and f"{name}-{res_type}" not in tracked:
                 unregistered.append((res_type, name))
+
+    if MCP_FILE.exists():
+        try:
+            mcp_cfg = load_mcp_config()
+            for sname in mcp_cfg.get("mcpServers", {}):
+                if sname not in tracked:
+                    unregistered.append(("mcp", sname))
+        except Exception:
+            pass
 
     print("\n======================= .agents/ Resource Registry =======================")
 
@@ -767,20 +924,34 @@ def cmd_remove(args: argparse.Namespace) -> None:
 
     target_path = None
     if name in tracked:
-        target_path = WORKSPACE_ROOT / tracked[name]["target_path"]
-        origin = tracked[name].get("origin", "unknown")
+        res_info = tracked[name]
+        res_type = res_info.get("type")
+        origin = res_info.get("origin", "unknown")
+        rel_target = res_info.get("target_path")
+        target_path = WORKSPACE_ROOT / rel_target if rel_target else None
         del tracked[name]
         save_registry(registry)
         print(f"[*] Deregistered '{name}' ({origin}) from registry.json.")
 
+        if res_type == "mcp":
+            mcp_cfg = load_mcp_config()
+            if name in mcp_cfg.get("mcpServers", {}):
+                del mcp_cfg["mcpServers"][name]
+                save_mcp_config(mcp_cfg)
+                cmd_mcp_sync(mcp_cfg)
+                print(f"[OK] Removed MCP server '{name}' from .agents/mcp.json and synced adapters.")
+            return
+
     if not target_path:
         for res_type in RESOURCE_TYPES:
+            if res_type == "mcp":
+                continue
             candidate = get_target_path(res_type, name)
             if candidate.exists():
                 target_path = candidate
                 break
 
-    if target_path and target_path.exists():
+    if target_path and target_path.exists() and target_path != MCP_FILE:
         if target_path.is_dir():
             shutil.rmtree(target_path)
         else:
@@ -809,21 +980,43 @@ def cmd_verify(args: argparse.Namespace) -> None:
         if not full_target.exists():
             issues.append(("ERROR", f"Tracked resource '{name}' missing on disk: {rel_target}"))
         else:
-            passed += 1
+            if data.get("type") == "mcp":
+                mcp_cfg = load_mcp_config()
+                if name not in mcp_cfg.get("mcpServers", {}):
+                    issues.append(("WARN", f"Tracked MCP resource '{name}' not found in {rel_target} mcpServers"))
+                else:
+                    passed += 1
+            else:
+                passed += 1
 
     # 2. Check for untracked workspace resources
     for res_type, meta in RESOURCE_TYPES.items():
+        if res_type == "mcp":
+            continue
         base_dir = meta["dir"]
         if not base_dir.exists():
             continue
         for item in base_dir.iterdir():
-            if item.name.startswith(".") or item.name in ("registry.json", "__pycache__") or item.name.endswith(".pyc"):
+            if item.name.startswith(".") or item.name in ("registry.json", "mcp.json", "aiignore", "__pycache__") or item.name.endswith(".pyc"):
                 continue
             name = item.stem if not meta["is_dir"] else item.name
-            if name not in tracked:
+            if res_type == "schema" and name.endswith(".schema"):
+                name = name[:-7]
+            if name not in tracked and f"{name}-{res_type}" not in tracked:
                 issues.append(("WARN", f"Untracked {res_type} on disk: {item.relative_to(WORKSPACE_ROOT)} (Run 'sync' to register)"))
             else:
                 passed += 1
+
+    if MCP_FILE.exists():
+        try:
+            mcp_cfg = load_mcp_config()
+            for sname in mcp_cfg.get("mcpServers", {}):
+                if sname not in tracked:
+                    issues.append(("WARN", f"Untracked mcp server in mcp.json: '{sname}' (Run 'sync' to register)"))
+                else:
+                    passed += 1
+        except Exception:
+            pass
 
     # 3. Skills validation (SKILL.md exists with YAML frontmatter)
     skills_dir = AGENTS_DIR / "skills"
@@ -1370,6 +1563,22 @@ def cmd_mcp(args: argparse.Namespace) -> None:
         print(f"[SUCCESS] Added MCP server preset '{tname}' to .agents/mcp.json.")
         cmd_mcp_sync(config)
 
+        reg = load_registry()
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        author = get_default_author()
+        reg.setdefault("resources", {})[tname] = {
+            "name": tname,
+            "type": "mcp",
+            "origin": "user",
+            "author": author,
+            "target_path": str(MCP_FILE.relative_to(WORKSPACE_ROOT)),
+            "created_at": now_iso,
+            "updated_at": now_iso,
+            "description": POPULAR_MCP_TEMPLATES[tname].get("description", f"MCP server '{tname}'"),
+        }
+        save_registry(reg)
+        print(f"[*] Registered MCP server '{tname}' in registry.json.")
+
     elif action == "add":
         sname = args.name
         command = args.cmd
@@ -1392,6 +1601,22 @@ def cmd_mcp(args: argparse.Namespace) -> None:
         print(f"[SUCCESS] Registered MCP server '{sname}' in .agents/mcp.json.")
         cmd_mcp_sync(config)
 
+        reg = load_registry()
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        author = get_default_author()
+        reg.setdefault("resources", {})[sname] = {
+            "name": sname,
+            "type": "mcp",
+            "origin": "user",
+            "author": author,
+            "target_path": str(MCP_FILE.relative_to(WORKSPACE_ROOT)),
+            "created_at": now_iso,
+            "updated_at": now_iso,
+            "description": args.description or f"Custom MCP server '{sname}'",
+        }
+        save_registry(reg)
+        print(f"[*] Registered MCP server '{sname}' in registry.json.")
+
     elif action == "remove":
         sname = args.name
         if sname in servers:
@@ -1399,6 +1624,12 @@ def cmd_mcp(args: argparse.Namespace) -> None:
             save_mcp_config(config)
             print(f"[SUCCESS] Removed MCP server '{sname}' from .agents/mcp.json.")
             cmd_mcp_sync(config)
+
+            reg = load_registry()
+            if sname in reg.get("resources", {}):
+                del reg["resources"][sname]
+                save_registry(reg)
+                print(f"[*] Deregistered MCP server '{sname}' from registry.json.")
         else:
             print(f"[WARN] MCP server '{sname}' not found in configuration.")
 
@@ -1551,6 +1782,50 @@ def cmd_discover(args: argparse.Namespace) -> None:
             except Exception:
                 pass
 
+        # 7. Scan for Schemas: json files in schemas/ or .agents/schemas/
+        for cand in [temp_clone_dir / "schemas", temp_clone_dir / ".agents" / "schemas"]:
+            if cand.exists() and cand.is_dir():
+                for sf in cand.glob("*.json"):
+                    subpath = sf.relative_to(temp_clone_dir)
+                    sname = sf.stem
+                    if sname.endswith(".schema"):
+                        sname = sname[:-7]
+                    discovered.append({
+                        "type": "schema",
+                        "name": sname,
+                        "subpath": str(subpath),
+                        "description": f"JSON Schema definition for {sname}",
+                        "tokens": sf.stat().st_size // 4,
+                    })
+
+        # 8. Scan for Scripts: files in scripts/ or .agents/scripts/
+        for cand in [temp_clone_dir / "scripts", temp_clone_dir / ".agents" / "scripts"]:
+            if cand.exists() and cand.is_dir():
+                for scf in cand.iterdir():
+                    if scf.is_file() and not scf.name.startswith("."):
+                        subpath = scf.relative_to(temp_clone_dir)
+                        discovered.append({
+                            "type": "script",
+                            "name": scf.name,
+                            "subpath": str(subpath),
+                            "description": f"Automation script {scf.name}",
+                            "tokens": scf.stat().st_size // 4,
+                        })
+
+        # 9. Scan for Hooks: files in hooks/ or .agents/hooks/
+        for cand in [temp_clone_dir / "hooks", temp_clone_dir / ".agents" / "hooks"]:
+            if cand.exists() and cand.is_dir():
+                for hf in cand.iterdir():
+                    if hf.is_file() and not hf.name.startswith("."):
+                        subpath = hf.relative_to(temp_clone_dir)
+                        discovered.append({
+                            "type": "hook",
+                            "name": hf.name,
+                            "subpath": str(subpath),
+                            "description": f"Lifecycle hook {hf.name}",
+                            "tokens": hf.stat().st_size // 4,
+                        })
+
         if not discovered:
             print(f"[WARN] No standard agent resources found in {git_url}.")
             return
@@ -1622,23 +1897,17 @@ def cmd_discover(args: argparse.Namespace) -> None:
         print(f"\n[*] Importing {len(selected_indices)} selected resource(s)...")
         for num in selected_indices:
             res = items[num - 1]
-            if res["type"] == "mcp-server":
-                mcp_cfg = load_mcp_config()
-                mcp_cfg.setdefault("mcpServers", {})[res["name"]] = res.get("mcp_payload", {})
-                save_mcp_config(mcp_cfg)
-                cmd_mcp_sync(mcp_cfg)
-                print(f"[OK] Added MCP Server '{res['name']}' to .agents/mcp.json.")
-            else:
-                install_from_repo(
-                    res_type=res["type"],
-                    name=res["name"],
-                    raw_url=git_url,
-                    ref=ref,
-                    subpath=res["subpath"],
-                    description=res["description"],
-                    raw=False,
-                    auto_yes=auto_yes,
-                )
+            target_res_type = "mcp" if res["type"] == "mcp-server" else res["type"]
+            install_from_repo(
+                res_type=target_res_type,
+                name=res["name"],
+                raw_url=git_url,
+                ref=ref,
+                subpath=res["subpath"],
+                description=res["description"],
+                raw=False,
+                auto_yes=auto_yes,
+            )
 
         print("\n🎉 [SUCCESS] Selected resources successfully imported and registered!")
     finally:
@@ -1913,7 +2182,7 @@ def main() -> None:
 
     # ADD / CREATE / IMPORT
     add_p = subparsers.add_parser("add", help="Add or scaffold an agent resource (alias: create).")
-    add_p.add_argument("type", help="Resource type: skill, agent, instruction, plugin, prompt, script, hook")
+    add_p.add_argument("type", help="Resource type: skill, agent, instruction, plugin, prompt, schema, script, hook, mcp")
     add_p.add_argument("name", help="Name or identifier of the resource")
     add_p.add_argument("--url", help="GitHub or Git repository URL to clone from")
     add_p.add_argument("--ref", help="Branch, tag, or commit to checkout (defaults to main)")
@@ -1926,7 +2195,7 @@ def main() -> None:
 
     # CREATE (Alias for add without --url)
     create_p = subparsers.add_parser("create", help="Scaffold a new user-created agent resource.")
-    create_p.add_argument("type", help="Resource type: skill, agent, instruction, plugin, prompt, script, hook")
+    create_p.add_argument("type", help="Resource type: skill, agent, instruction, plugin, prompt, schema, script, hook, mcp")
     create_p.add_argument("name", help="Name or identifier of the resource")
     create_p.add_argument("--author", help="Author name for user-created resources")
     create_p.add_argument("--description", help="Description of the resource")
