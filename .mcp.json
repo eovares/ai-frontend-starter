@@ -14,6 +14,15 @@
       "type": "http",
       "url": "https://mcp.figma.com/mcp",
       "description": "Official Figma remote MCP server for design context, canvas automation, and Code Connect"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env": {},
+      "description": "Official Playwright MCP server for browser automation, web testing, and accessibility-based interaction"
     }
   }
 }
