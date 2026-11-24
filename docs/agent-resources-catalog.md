@@ -16,7 +16,7 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  │  24 Skills, 1 MCP                       │  3 Skills, 1 Instruction                     │
  │                                                                                        │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Technical Writing        │
- │  3 Skills, 1 Agent, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
+ │  3 Skills, 2 Agents, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
  │                                                                                        │
  │  ⚙️ AgentOps & Architecture             │  🔌 Extensibility Points                     │
  │  1 Agent, 1 Script, 2 Schemas, 1 MCP    │  Hooks (.gitkeep), Plugins, Prompts          │
@@ -142,6 +142,11 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Agent** | `devtools-regression-investigator.md` | `.agents/agents/devtools-regression-investigator.md` | Browser regression specialist diagnosing broken flows, failed submissions, and root causes via Chrome DevTools. |
 
+#### 3.5. Runtime Accessibility Testing (Agents)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Agent** | `accessibility-runtime-tester.md` | `.agents/agents/accessibility-runtime-tester.md` | Runtime accessibility specialist for keyboard flows, focus management, dialog behavior, and evidence-backed WCAG validation. |
+
 ---
 
 ### 4. 📝 Documentation, Technical Writing & LLM Context
@@ -237,7 +242,7 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (24 Skills, 1 MCP)
 2. **💻 2. Front End Development** — 4 Subcategories (3 Skills, 1 Instruction)
-3. **🧪 3. Web App Testing, Playwright & Browser QA** — 4 Subcategories (3 Skills, 1 MCP, 1 Instruction, 1 Agent)
+3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (3 Skills, 1 MCP, 1 Instruction, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & LLM Context** — 4 Subcategories (5 Skills, 1 Agent, 2 Instructions)
 5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 5 Subcategories (1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
 6. **🔌 6. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
