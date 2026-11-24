@@ -61,7 +61,7 @@ Assistants must never create vendor-specific folders (e.g., `.claude/skills/`, `
 
 ### Resource Tracking & Provenance Registry
 
-All agent resources must be recorded in `.agents/registry.json`:
+All agent resources (skills, agents, hooks, instructions, plugins, prompts, schemas, scripts, and MCP servers) must be recorded in `.agents/registry.json`:
 1. **User-Created Resources (`origin: "user"`)**: Records author, creation date, target path, and description.
 2. **External / GitHub Resources (`origin: "remote"`)**: Records upstream Git URL, subpath, branch/ref, commit hash, installation path, and timestamps for seamless future updates.
 3. **Cross-Agent Neutrality & Mandatory User Confirmation**: Imported skills and resources must retain functionality while neutralizing hardcoded LLM model locks (`model: ...`) or vendor-specific directories (`.claude/`, `.gemini/`) to run agnostically on **Claude Code**, **Antigravity**, **GitHub Copilot**, and **Cursor**. Assistants and scripts must always prompt the user with a preview of changes to accept or decline before applying neutralization.

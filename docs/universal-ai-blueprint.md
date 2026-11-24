@@ -36,14 +36,21 @@ To prevent creating fragmented proprietary folders (`.claude/`, `.gemini/`, `.cu
 
 ```text
 .agents/
+├── aiignore       # Universal AI assistant ignore rules (SSOT)
 ├── agents/        # Specialized agent personas and subagent definitions
 ├── hooks/         # Lifecycle hooks (pre-tool/post-tool execution scripts)
 ├── instructions/  # Extended, modular instruction files that complement AGENTS.md
 ├── plugins/       # Bundled capabilities (skills + rules + hooks)
 ├── prompts/       # Reusable prompt templates and query patterns
+├── schemas/       # JSON Schemas for registry and MCP validation
 ├── scripts/       # Automation helper scripts executed by agents
-└── skills/        # Reusable procedural skills (<skill-name>/SKILL.md)
+├── skills/        # Reusable procedural skills (<skill-name>/SKILL.md)
+├── mcp.json       # Canonical Model Context Protocol server definitions
+└── registry.json  # Provenance registry tracking user and remote resources
 ```
+
+> [!TIP]
+> For complete taxonomy, provenance tracking, and update workflows across all 9 resource types, refer to the **[Agent Resources Lifecycle & Provenance Guide](./agent-resources-lifecycle.md)**.
 
 ### Preserving Empty Folders in Git with `.gitkeep`
 

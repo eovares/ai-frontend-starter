@@ -89,14 +89,21 @@ Rather than maintaining separate, proprietary vendor directories for each assist
 
 ```text
 .agents/
+├── aiignore       # Universal AI assistant ignore rules (SSOT)
 ├── agents/        # Specialized agent definitions and roles
 ├── hooks/         # Lifecycle hooks (e.g., pre-tool/post-tool scripts)
 ├── instructions/  # Extended modular instruction sets
 ├── plugins/       # Namespaced bundles of skills, rules, and configurations
 ├── prompts/       # Reusable prompt templates and query patterns
+├── schemas/       # JSON Schemas for registry and MCP validation
 ├── scripts/       # Automation scripts executable by agents
-└── skills/        # Reusable procedural skills with SKILL.md definitions
+├── skills/        # Reusable procedural skills with SKILL.md definitions
+├── mcp.json       # Canonical Model Context Protocol server definitions
+└── registry.json  # Provenance registry tracking user and remote resources
 ```
+
+> [!TIP]
+> For complete taxonomy, provenance tracking, and update workflows across all 9 resource types, refer to the **[Agent Resources Lifecycle & Provenance Guide](./agent-resources-lifecycle.md)**.
 
 ### Git Tracking with `.gitkeep`
 

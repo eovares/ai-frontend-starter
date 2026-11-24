@@ -52,7 +52,9 @@ This template implements a **Single Source of Truth (SSOT)** model to coordinate
 
 ## Managing Agent Resources
 
-The bundled utility `.agents/scripts/agents-manager.py` manages the entire lifecycle of agent resources:
+The bundled utility `.agents/scripts/agents-manager.py` manages the entire lifecycle of agent resources across all 9 types (skills, agents, instructions, plugins, prompts, schemas, scripts, hooks, and MCP servers).
+
+> 📖 **Detailed Guide:** See the **[Agent Resources Lifecycle & Provenance Guide](./docs/agent-resources-lifecycle.md)** for architecture, schema specifications, and workflow examples.
 
 ```bash
 # 🚀 Init: Initialize workspace context and project goals in AGENTS.md
@@ -72,7 +74,7 @@ python3 .agents/scripts/agents-manager.py mcp templates
 python3 .agents/scripts/agents-manager.py mcp add-template filesystem
 python3 .agents/scripts/agents-manager.py mcp sync
 
-# 🛠️ Creator: Scaffold standardized user resource
+# 🛠️ Creator: Scaffold standardized user resource (skill, agent, hook, instruction, plugin, prompt, schema, script, mcp)
 python3 .agents/scripts/agents-manager.py create <type> <name>
 
 # 🔍 Verifier: Audit integrity, frontmatter, permissions, and structure
@@ -81,13 +83,13 @@ python3 .agents/scripts/agents-manager.py verify [--fix]
 # 📊 Analyzer: Token consumption and cross-agent compatibility matrix
 python3 .agents/scripts/agents-manager.py analyze [name]
 
-# 🌐 Importer: Import external skills from GitHub with model lock neutralization
+# 🌐 Importer: Import external resources from GitHub with provenance tracking & neutralization
 python3 .agents/scripts/agents-manager.py add <type> <name> --url <github-url>
 
 # 📦 Exporter: Package resource(s) into portable .tar.gz or .zip bundles
 python3 .agents/scripts/agents-manager.py export [name] [--format tar.gz|zip]
 
-# 🔄 Updater: Update tracked remote resources from GitHub
+# 🔄 Updater: Update tracked remote resources from GitHub (skills, agents, hooks, mcp, etc.)
 python3 .agents/scripts/agents-manager.py update [name]
 
 # 🗃️ Syncer: Index untracked workspace files into registry.json
