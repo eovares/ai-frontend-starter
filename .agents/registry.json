@@ -625,6 +625,68 @@
       "created_at": "2026-11-24T20:42:09.561419+00:00",
       "updated_at": "2026-11-24T20:42:09.561419+00:00",
       "description": "Runtime accessibility specialist for keyboard flows, focus management, dialog behavior, form errors, and evidence-backed WCAG validation in the browser"
+    },
+    "accessibility": {
+      "name": "accessibility",
+      "type": "agent",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/agents/accessibility.md",
+      "created_at": "2026-11-24T21:25:33.776860+00:00",
+      "updated_at": "2026-11-24T21:25:33.776860+00:00",
+      "description": "Generic accessibility reviewer for component diffs, acceptance criteria, and Storybook stories across React, Angular, Vue, Web Components, Lit, and TypeScript"
+    },
+    "web-component-specialist": {
+      "name": "web-component-specialist",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/Community-Access/accessibility-agents.git",
+      "source_subpath": "skills/web-component-specialist",
+      "ref": "main",
+      "commit": "a538edc9edfb98cdd8bae96d6b79542874b478f7",
+      "target_path": ".agents/skills/web-component-specialist",
+      "created_at": "2026-11-24T21:55:42.282799+00:00",
+      "updated_at": "2026-11-24T21:55:42.282799+00:00",
+      "description": "Custom elements and shadow DOM accessibility: ElementInternals, cross-shadow ARIA, focus delegation, and slots"
+    },
+    "design-system-auditor": {
+      "name": "design-system-auditor",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/Community-Access/accessibility-agents.git",
+      "source_subpath": "skills/design-system-auditor",
+      "ref": "main",
+      "commit": "a538edc9edfb98cdd8bae96d6b79542874b478f7",
+      "target_path": ".agents/skills/design-system-auditor",
+      "created_at": "2026-11-24T21:55:44.004436+00:00",
+      "updated_at": "2026-11-24T21:55:44.004436+00:00",
+      "description": "Design system audit for color, focus ring, spacing, and motion tokens before reaching production UI"
+    },
+    "kb-design-system": {
+      "name": "kb-design-system",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/Community-Access/accessibility-agents.git",
+      "source_subpath": "skills/kb-design-system",
+      "ref": "main",
+      "commit": "a538edc9edfb98cdd8bae96d6b79542874b478f7",
+      "target_path": ".agents/skills/kb-design-system",
+      "created_at": "2026-11-24T21:55:45.898059+00:00",
+      "updated_at": "2026-11-24T21:55:45.898059+00:00",
+      "description": "Knowledge base for design system tokens: WCAG AA/AAA contrast, focus ring validation (2.4.13), and touch targets"
+    },
+    "kb-playwright-testing": {
+      "name": "kb-playwright-testing",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/Community-Access/accessibility-agents.git",
+      "source_subpath": "skills/kb-playwright-testing",
+      "ref": "main",
+      "commit": "a538edc9edfb98cdd8bae96d6b79542874b478f7",
+      "target_path": ".agents/skills/kb-playwright-testing",
+      "created_at": "2026-11-24T21:55:47.689646+00:00",
+      "updated_at": "2026-11-24T21:55:47.689646+00:00",
+      "description": "Knowledge base for Playwright accessibility testing: @axe-core/playwright, keyboard scans, and accessibility tree snapshots"
     }
   }
 }

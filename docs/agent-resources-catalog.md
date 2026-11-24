@@ -13,10 +13,10 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  ┌────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                        │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                    │
- │  24 Skills, 1 MCP                       │  3 Skills, 1 Instruction                     │
+ │  26 Skills, 1 MCP                       │  4 Skills, 1 Instruction, 1 Agent            │
  │                                                                                        │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Technical Writing        │
- │  3 Skills, 2 Agents, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
+ │  4 Skills, 2 Agents, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
  │                                                                                        │
  │  ⚙️ AgentOps & Architecture             │  🔌 Extensibility Points                     │
  │  1 Agent, 1 Script, 2 Schemas, 1 MCP    │  Hooks (.gitkeep), Plugins, Prompts          │
@@ -84,6 +84,8 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Skill** | `audit-design-system` | `.agents/skills/audit-design-system/SKILL.md` | Audits Figma screens or components for drift, missing shared components, and unbound tokens. |
 | **Skill** | `fix-design-system-finding` | `.agents/skills/fix-design-system-finding/SKILL.md` | Resolves specific audit findings (unbound tokens, raw colors, component detachments). |
+| **Skill** | `design-system-auditor` | `.agents/skills/design-system-auditor/SKILL.md` | Audits color, focus ring, spacing, and motion design tokens for accessibility before reaching UI. |
+| **Skill** | `kb-design-system` | `.agents/skills/kb-design-system/SKILL.md` | Token reference data: Computes contrast (AA/AAA), validates focus rings (WCAG 2.4.13), and touch targets. |
 
 #### 1.8. Model Context Protocol Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -99,6 +101,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Skill** | `modern-web-guidance` | `.agents/skills/modern-web-guidance/SKILL.md` | Search tool and guidelines for modern HTML/CSS/JS APIs (dialogs, popovers, container queries, view transitions, a11y). |
+| **Skill** | `web-component-specialist` | `.agents/skills/web-component-specialist/SKILL.md` | Custom elements and shadow DOM accessibility (ElementInternals, cross-shadow ARIA, delegatesFocus, slots). |
 
 #### 2.2. Aesthetic Direction & Visual UI Design (Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -110,9 +113,10 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Skill** | `chrome-extensions` | `.agents/skills/chrome-extensions/SKILL.md` | End-to-end authoring, architecture, debugging, and store publication for Chrome Extensions (Manifest V3). |
 
-#### 2.4. Web Accessibility & WCAG 2.2 Standards (Instructions)
+#### 2.4. Web Accessibility & WCAG 2.2 Standards (Instructions & Agents)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
+| **Agent** | `accessibility.md` | `.agents/agents/accessibility.md` | Universal accessibility reviewer for component diffs, acceptance criteria, and Storybook stories across React, Angular, Vue, Web Components, Lit, and TypeScript. |
 | **Instruction** | `a11y` | `.agents/instructions/a11y.md` | Comprehensive WCAG 2.2 AA accessibility standards, 38+ anti-patterns, legal compliance (EAA, ADA), and framework-specific patterns. |
 
 ---
@@ -126,6 +130,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | **Skill** | `playwright-cli` | `.agents/skills/playwright-cli/SKILL.md` | Token-efficient browser automation CLI workflows, web testing, snapshots, and session management. |
 | **Skill** | `playwright-generate-test` | `.agents/skills/playwright-generate-test/SKILL.md` | Generates Playwright end-to-end tests based on user scenarios via Playwright MCP. |
 | **Skill** | `playwright-explore-website` | `.agents/skills/playwright-explore-website/SKILL.md` | Explores live websites and interactive workflows to discover edge cases using Playwright MCP. |
+| **Skill** | `kb-playwright-testing` | `.agents/skills/kb-playwright-testing/SKILL.md` | Reference data for Playwright accessibility testing with @axe-core/playwright, keyboard scans, and a11y trees. |
 
 #### 3.2. Model Context Protocol Browser Engine (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -240,9 +245,9 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 2. **Tier 2 — Functional Subcategories**: Specific operational groupings numbered hierarchically (`X.Y`), classifying resources by technical role (e.g., `3.1. E2E Automation Skills`, `3.2. MCP Engines`, `3.3. Test Instructions`, `3.4. Diagnostic Agents`).
 
 ### Active Workspace Categories
-1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (24 Skills, 1 MCP)
-2. **💻 2. Front End Development** — 4 Subcategories (3 Skills, 1 Instruction)
-3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (3 Skills, 1 MCP, 1 Instruction, 2 Agents)
+1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (26 Skills, 1 MCP)
+2. **💻 2. Front End Development** — 4 Subcategories (4 Skills, 1 Instruction, 1 Agent)
+3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (4 Skills, 1 MCP, 1 Instruction, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & LLM Context** — 4 Subcategories (5 Skills, 1 Agent, 2 Instructions)
 5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 5 Subcategories (1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
 6. **🔌 6. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
