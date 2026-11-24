@@ -13,7 +13,7 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  ┌────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                        │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                    │
- │  24 Skills, 1 MCP                       │  3 Skills                                    │
+ │  24 Skills, 1 MCP                       │  3 Skills, 1 Instruction                     │
  │                                                                                        │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Technical Writing        │
  │  3 Skills, 1 Agent, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
@@ -109,6 +109,11 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Skill** | `chrome-extensions` | `.agents/skills/chrome-extensions/SKILL.md` | End-to-end authoring, architecture, debugging, and store publication for Chrome Extensions (Manifest V3). |
+
+#### 2.4. Web Accessibility & WCAG 2.2 Standards (Instructions)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Instruction** | `a11y` | `.agents/instructions/a11y.md` | Comprehensive WCAG 2.2 AA accessibility standards, 38+ anti-patterns, legal compliance (EAA, ADA), and framework-specific patterns. |
 
 ---
 
@@ -231,7 +236,7 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (24 Skills, 1 MCP)
-2. **💻 2. Front End Development** — 3 Subcategories (3 Skills)
+2. **💻 2. Front End Development** — 4 Subcategories (3 Skills, 1 Instruction)
 3. **🧪 3. Web App Testing, Playwright & Browser QA** — 4 Subcategories (3 Skills, 1 MCP, 1 Instruction, 1 Agent)
 4. **📝 4. Documentation, Technical Writing & LLM Context** — 4 Subcategories (5 Skills, 1 Agent, 2 Instructions)
 5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 5 Subcategories (1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
