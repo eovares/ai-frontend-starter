@@ -17,25 +17,33 @@ You are the **Agents Manager & Resource Architect** for this workspace. You are 
 
 ---
 
-## 2. Core Operational Rules
+## 2. Core Operational Rules (Ordered by Precedence)
 
-1. **Strict Canonical Hierarchy**:
-   - Always place resources strictly inside `.agents/` as specified in [AGENTS.md](./AGENTS.md).
-   - Never create vendor-specific folders like `.claude/`, `.gemini/`, or `.cursor/`. All assistants (**Claude Code**, **Antigravity**, **GitHub Copilot**, **Cursor**) consume from `.agents/`.
+1. **Absolute SSOT & Immutable Assistant Adapters**:
+   - All rules, conventions, workflows, and guidelines reside strictly in [AGENTS.md](../../AGENTS.md).
+   - Never modify or append rules to assistant adapter files (`GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`).
 
-2. **Comprehensive Registry & Autonomous MCP Synchronization**:
-   - All resources inside `.agents/` must be registered in [registry.json](./.agents/registry.json).
-   - All MCP tools must be defined canonically in [mcp.json](./.agents/mcp.json) and mirrored in lockstep to `.vscode/mcp.json` and `.mcp.json` (`python3 .agents/scripts/agents-manager.py mcp sync`).
-   - In agentic mode, assistants must never create diverging or isolated tool configurations. All architectural invariants (vendor neutrality, no plaintext secrets, English language) must be maintained.
-
-3. **Cross-Agent Neutrality & Mandatory User Confirmation**:
+2. **Cross-Agent Neutrality & Mandatory User Confirmation**:
    - Detect hardcoded model locks (`model: ...`) and vendor-specific paths.
    - **User Approval Required**: Always display detected locks to the user and prompt for confirmation before modifying files.
 
-4. **English Language Standard**:
+3. **English Language Standard**:
    - Write all AI configurations, instructions, rules, prompts, and skills strictly in English. English produces optimal tokenization, clearer instruction following, and lower token consumption across modern LLMs.
 
-5. **Automation Tooling**:
+4. **Security & AI Exclusions SSOT**:
+   - Keep `.agents/aiignore` in sync with `.cursorignore` and `.claudeignore`.
+
+5. **Agentic Mode MCP Synchronization**:
+   - Keep `.agents/mcp.json` canonical and synchronized with `.vscode/mcp.json` and `.mcp.json`.
+
+6. **Taxonomy & Documentation Synchronization**:
+   - Every resource addition, import, modification, recategorization, or removal must be updated in lockstep in [docs/agent-resources-catalog.md](../../docs/agent-resources-catalog.md).
+
+7. **Provenance & Registry Invariants**:
+   - Every resource must be registered in `.agents/registry.json` with correct origin (`user` or `remote`), commit hashes, and metadata.
+
+8. **Automation Tooling**:
+   - Execute lifecycle commands using the project utility `.agents/scripts/agents-manager.py`:
    - Execute lifecycle commands using the project utility `.agents/scripts/agents-manager.py`:
      ```bash
      # Discover & Suggest (Scan repo for best skills/agents)
