@@ -140,3 +140,17 @@ Per **Rule 6 in [AGENTS.md](../AGENTS.md)**:
 
 Furthermore, per **Rule 1 in [AGENTS.md](../AGENTS.md)**:
 > **Absolute SSOT & Immutable Assistant Adapters**: All architectural guidelines, conventions, rules, and workflows must reside exclusively within `AGENTS.md`. Assistant-specific entry points (`GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`) are strictly immutable, read-only forwarders and must NEVER be modified directly by AI assistants.
+
+### Full Governance Hierarchy Reference
+
+| # | Rule | Scope / Domain | Key Invariant |
+| :-: | :--- | :--- | :--- |
+| **1** | **Absolute SSOT & Immutable Assistant Adapters** | 🏛️ Governance | All guidelines live in `AGENTS.md`; assistant adapters are read-only. |
+| **2** | **Cross-Agent Neutrality & Mandatory User Confirmation** | 🌐 Neutrality | Zero model locks; user approval required before neutralizing. |
+| **3** | **English for All AI Artifacts** | 🔤 Standard | All configurations, prompts, and skills written in English. |
+| **4** | **AI Exclusions & Security SSOT** | 🔒 Security | `.agents/aiignore` is SSOT synced to `.cursorignore` and `.claudeignore`. |
+| **5** | **Agentic Mode MCP Synchronization** | 🔌 Tooling | `.agents/mcp.json` canonical SSOT synced to adapters. |
+| **6** | **Mandatory Documentation & Taxonomy Synchronization** | 📚 Living Docs | Immediate lockstep updates to `docs/agent-resources-catalog.md`. |
+| **7** | **Provenance Tracking: User Resources (`origin: "user"`)** | 🏷️ Provenance | Author, timestamp, and target path recorded in `registry.json`. |
+| **8** | **Provenance Tracking: Remote Resources (`origin: "remote"`)** | 🔗 Provenance | Upstream Git URL, commit SHA, and subpath recorded in `registry.json`. |
+| **9** | **Canonical Automation Tooling & Specialized Agent** | ⚙️ Tooling | Lifecycle operations executed via `agents-manager.py` / `agents-manager.md`. |
