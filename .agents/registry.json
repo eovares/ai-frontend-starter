@@ -373,6 +373,46 @@
       "created_at": "2026-11-24T14:37:15.948283+00:00",
       "updated_at": "2026-11-24T14:37:15.948283+00:00",
       "description": "This skill helps agents use Figma's use_figma MCP tool in the Slides context. Can be used alongside figma-use which has foundational context for using the use_figma tool."
+    },
+    "agents-manager-script": {
+      "name": "agents-manager-script",
+      "type": "script",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/scripts/agents-manager.py",
+      "created_at": "2026-11-24T14:54:07.858971+00:00",
+      "updated_at": "2026-11-24T14:54:07.858971+00:00",
+      "description": "Custom script in workspace"
+    },
+    "registry": {
+      "name": "registry",
+      "type": "schema",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/schemas/registry.schema.json",
+      "created_at": "2026-11-24T14:54:07.858971+00:00",
+      "updated_at": "2026-11-24T14:54:07.858971+00:00",
+      "description": "Custom schema in workspace"
+    },
+    "mcp": {
+      "name": "mcp",
+      "type": "schema",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/schemas/mcp.schema.json",
+      "created_at": "2026-11-24T14:54:07.858971+00:00",
+      "updated_at": "2026-11-24T14:54:07.858971+00:00",
+      "description": "Custom schema in workspace"
+    },
+    "filesystem": {
+      "name": "filesystem",
+      "type": "mcp",
+      "origin": "user",
+      "author": "Edward Ovares",
+      "target_path": ".agents/mcp.json",
+      "created_at": "2026-11-24T14:54:07.858971+00:00",
+      "updated_at": "2026-11-24T14:54:07.858971+00:00",
+      "description": "Secure local workspace file read and edit tools"
     }
   }
 }
