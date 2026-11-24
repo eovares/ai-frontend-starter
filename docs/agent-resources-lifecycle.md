@@ -10,6 +10,19 @@ When scaling AI agent capabilities in software repositories, teams face two majo
 1. **Provenance Drift:** Losing track of whether a tool, prompt, or skill was authored locally by a team member or imported from an external repository (e.g. Anthropic, Google Chrome, Figma, or community repos).
 2. **Upstream Invalidation:** Inability to safely update imported capabilities from upstream Git repositories without accidentally overwriting local customizations.
 
+### Core Governance Rules & SSOT Hierarchy (from AGENTS.md)
+
+All AI assistants and contributors must adhere to the 9 canonical governance rules ordered by precedence:
+1. **Absolute SSOT & Immutable Assistant Adapters**: All rules reside exclusively in `AGENTS.md`. Assistant-specific adapters (`GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`) are strictly read-only and immutable.
+2. **Cross-Agent Neutrality & Mandatory User Confirmation**: Zero model/vendor locks; mandatory user confirmation before applying neutralization.
+3. **English for All AI Artifacts**: All configurations, prompts, and skills strictly written in English.
+4. **AI Exclusions & Security SSOT**: Universal `.agents/aiignore` kept in lockstep with `.cursorignore` and `.claudeignore`.
+5. **Agentic Mode MCP Synchronization**: `.agents/mcp.json` is canonical; mirrors to `.vscode/mcp.json` and `.mcp.json`.
+6. **Mandatory Documentation & Taxonomy Synchronization**: `docs/agent-resources-catalog.md` updated in lockstep whenever resources change.
+7. **Provenance Tracking: User Resources (`origin: "user"`)**: Registered with author, timestamp, and target path.
+8. **Provenance Tracking: Remote Resources (`origin: "remote"`)**: Registered with Git URL, commit SHA, and subpaths.
+9. **Canonical Automation Tooling & Specialized Agent**: Driven by `.agents/agents/agents-manager.md` and `.agents/scripts/agents-manager.py`.
+
 To solve this, this repository implements a canonical **Provenance & Registry System** centered around **`.agents/registry.json`** and driven by the CLI utility **`.agents/scripts/agents-manager.py`**.
 
 ```text
