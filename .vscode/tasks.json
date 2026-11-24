@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Agents: Verify Integrity",
+      "type": "shell",
+      "command": "python3 .agents/scripts/agents-manager.py verify",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Doctor Diagnostics",
+      "type": "shell",
+      "command": "python3 .agents/scripts/agents-manager.py doctor",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Analyze Tokens & Compatibility",
+      "type": "shell",
+      "command": "python3 .agents/scripts/agents-manager.py analyze",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Sync Untracked Resources",
+      "type": "shell",
+      "command": "python3 .agents/scripts/agents-manager.py sync",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Sync MCP Configurations",
+      "type": "shell",
+      "command": "python3 .agents/scripts/agents-manager.py mcp sync",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Sync AI Ignore Exclusions",
+      "type": "shell",
+      "command": "python3 .agents/scripts/agents-manager.py ignore sync",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

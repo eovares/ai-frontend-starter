@@ -7,6 +7,7 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "ritwickdey.liveserver",
-    "sikilab.md-view"
+    "sikilab.md-view",
+    "editorconfig.editorconfig"
   ]
 }
