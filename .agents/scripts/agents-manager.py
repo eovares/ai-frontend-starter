@@ -28,6 +28,10 @@ WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent
 AGENTS_DIR = WORKSPACE_ROOT / ".agents"
 REGISTRY_FILE = AGENTS_DIR / "registry.json"
 MCP_FILE = AGENTS_DIR / "mcp.json"
+AIIGNORE_FILE = AGENTS_DIR / "aiignore"
+CURSORIGNORE_FILE = WORKSPACE_ROOT / ".cursorignore"
+CLAUDEIGNORE_FILE = WORKSPACE_ROOT / ".claudeignore"
+SCHEMAS_DIR = AGENTS_DIR / "schemas"
 
 RESOURCE_TYPES = {
     "skill": {
@@ -894,6 +898,51 @@ def cmd_verify(args: argparse.Namespace) -> None:
         if candidate.exists() and candidate.is_dir():
             issues.append(("WARN", f"Non-canonical vendor folder detected: {vendor_dir}/ (move agent resources to .agents/)"))
 
+    # 8. Check MCP synchronization parity (.vscode/mcp.json and .mcp.json vs .agents/mcp.json)
+    if MCP_FILE.exists():
+        try:
+            mcp_cfg = load_mcp_config()
+            mcp_ok, mcp_diffs = check_mcp_sync(mcp_cfg)
+            if not mcp_ok:
+                if fix:
+                    cmd_mcp_sync(mcp_cfg)
+                    print("[FIX] Synchronized MCP configurations to .vscode/mcp.json and .mcp.json")
+                    passed += 1
+                else:
+                    for diff in mcp_diffs:
+                        issues.append(("ERROR", f"MCP Sync Issue: {diff} (Run 'mcp sync' or use --fix)"))
+            else:
+                passed += 1
+        except Exception as e:
+            issues.append(("ERROR", f"Failed reading .agents/mcp.json: {e}"))
+
+    # 9. Check AI ignore synchronization parity (.cursorignore, .claudeignore vs .agents/aiignore)
+    if AIIGNORE_FILE.exists():
+        ign_ok, ign_diffs = check_aiignore_sync()
+        if not ign_ok:
+            if fix:
+                sync_aiignore()
+                print("[FIX] Synchronized .agents/aiignore to .cursorignore and .claudeignore")
+                passed += 1
+            else:
+                for diff in ign_diffs:
+                    issues.append(("WARN", f"AI Ignore Issue: {diff} (Run 'ignore sync' or use --fix)"))
+        else:
+            passed += 1
+
+    # 10. Check JSON Schemas existence
+    if SCHEMAS_DIR.exists():
+        reg_schema = SCHEMAS_DIR / "registry.schema.json"
+        mcp_schema = SCHEMAS_DIR / "mcp.schema.json"
+        if not reg_schema.exists():
+            issues.append(("WARN", "Missing .agents/schemas/registry.schema.json"))
+        else:
+            passed += 1
+        if not mcp_schema.exists():
+            issues.append(("WARN", "Missing .agents/schemas/mcp.schema.json"))
+        else:
+            passed += 1
+
     # Print summary report
     print("\n======================= .agents/ Verification & Health Report =======================")
     errors = [msg for lvl, msg in issues if lvl == "ERROR"]
@@ -913,6 +962,9 @@ def cmd_verify(args: argparse.Namespace) -> None:
     else:
         print("❌ [FAIL] Critical errors detected that should be resolved.")
     print("=====================================================================================\n")
+
+    if errors:
+        sys.exit(1)
 
 
 def cmd_analyze(args: argparse.Namespace) -> None:
@@ -1198,6 +1250,78 @@ def cmd_mcp_sync(config: Dict[str, Any]) -> None:
         json.dump(payload, f, indent=2)
         f.write("\n")
     print(f"[*] Synced MCP configuration to .mcp.json (Cursor & Claude Code compatible)")
+
+
+def check_mcp_sync(config: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    """Checks whether .vscode/mcp.json and .mcp.json match .agents/mcp.json."""
+    servers = config.get("mcpServers", {})
+    mismatches = []
+
+    vscode_mcp = WORKSPACE_ROOT / ".vscode" / "mcp.json"
+    if not vscode_mcp.exists():
+        mismatches.append(".vscode/mcp.json is missing")
+    else:
+        try:
+            vdata = json.loads(vscode_mcp.read_text(encoding="utf-8"))
+            if vdata.get("mcpServers") != servers:
+                mismatches.append(".vscode/mcp.json out of sync with .agents/mcp.json")
+        except Exception as e:
+            mismatches.append(f".vscode/mcp.json invalid JSON: {e}")
+
+    root_mcp = WORKSPACE_ROOT / ".mcp.json"
+    if not root_mcp.exists():
+        mismatches.append(".mcp.json is missing")
+    else:
+        try:
+            rdata = json.loads(root_mcp.read_text(encoding="utf-8"))
+            if rdata.get("mcpServers") != servers:
+                mismatches.append(".mcp.json out of sync with .agents/mcp.json")
+        except Exception as e:
+            mismatches.append(f".mcp.json invalid JSON: {e}")
+
+    return (len(mismatches) == 0, mismatches)
+
+
+def sync_aiignore() -> Tuple[bool, str]:
+    """Synchronizes .agents/aiignore SSOT to .cursorignore and .claudeignore."""
+    if not AIIGNORE_FILE.exists():
+        return False, f"Source ignore file missing: {AIIGNORE_FILE.relative_to(WORKSPACE_ROOT)}"
+    content = AIIGNORE_FILE.read_text(encoding="utf-8")
+    CURSORIGNORE_FILE.write_text(content, encoding="utf-8")
+    CLAUDEIGNORE_FILE.write_text(content, encoding="utf-8")
+    return True, "Synced .agents/aiignore to .cursorignore and .claudeignore"
+
+
+def check_aiignore_sync() -> Tuple[bool, List[str]]:
+    """Checks whether .cursorignore and .claudeignore match .agents/aiignore."""
+    mismatches = []
+    if not AIIGNORE_FILE.exists():
+        return False, [".agents/aiignore does not exist"]
+    content = AIIGNORE_FILE.read_text(encoding="utf-8")
+    for fpath in [CURSORIGNORE_FILE, CLAUDEIGNORE_FILE]:
+        if not fpath.exists():
+            mismatches.append(f"{fpath.name} is missing")
+        else:
+            if fpath.read_text(encoding="utf-8") != content:
+                mismatches.append(f"{fpath.name} is out of sync with .agents/aiignore")
+    return (len(mismatches) == 0, mismatches)
+
+
+def cmd_ignore(args: argparse.Namespace) -> None:
+    action = getattr(args, "ignore_action", "sync")
+    if action == "sync":
+        ok, msg = sync_aiignore()
+        if ok:
+            print(f"[*] {msg}")
+        else:
+            print(f"❌ {msg}")
+    elif action == "check":
+        ok, diffs = check_aiignore_sync()
+        if ok:
+            print("✅ All AI ignore files (.cursorignore, .claudeignore) are in sync with .agents/aiignore.")
+        else:
+            for diff in diffs:
+                print(f"⚠️  {diff}")
 
 
 def cmd_mcp(args: argparse.Namespace) -> None:
@@ -1521,6 +1645,225 @@ def cmd_discover(args: argparse.Namespace) -> None:
             shutil.rmtree(temp_clone_dir, ignore_errors=True)
 
 
+def cmd_doctor(args: argparse.Namespace) -> None:
+    """Performs comprehensive diagnostics on environment, adapters, MCP, and security."""
+    print("\n======================= 🩺 Agent Environment Diagnostics (Doctor) =======================")
+    checks: List[Tuple[str, str, str]] = []  # (status, category, message)
+
+    # 1. System environment
+    py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    if sys.version_info >= (3, 8):
+        checks.append(("PASS", "System", f"Python version {py_ver} (>= 3.8 supported)"))
+    else:
+        checks.append(("FAIL", "System", f"Python version {py_ver} is too old (>= 3.8 required)"))
+
+    node_found = shutil.which("node") is not None
+    npx_found = shutil.which("npx") is not None
+    if npx_found:
+        checks.append(("PASS", "System", "npx executable is available for MCP servers"))
+    elif node_found:
+        checks.append(("WARN", "System", "node is available, but npx was not found in PATH"))
+    else:
+        checks.append(("WARN", "System", "Node.js / npx not detected (required for npx-based MCP servers)"))
+
+    git_found = shutil.which("git") is not None
+    if git_found:
+        checks.append(("PASS", "System", "Git CLI is available"))
+    else:
+        checks.append(("FAIL", "System", "Git CLI not found in PATH"))
+
+    # 2. SSOT & Adapters
+    agents_md = WORKSPACE_ROOT / "AGENTS.md"
+    if agents_md.exists():
+        checks.append(("PASS", "Architecture", "Canonical AGENTS.md (SSOT) exists in workspace root"))
+    else:
+        checks.append(("FAIL", "Architecture", "AGENTS.md (SSOT) is missing from workspace root"))
+
+    adapters = [
+        ("Claude Code", WORKSPACE_ROOT / "CLAUDE.md", "AGENTS.md"),
+        ("Antigravity", WORKSPACE_ROOT / "GEMINI.md", "AGENTS.md"),
+        ("Cursor", WORKSPACE_ROOT / ".cursorrules", "AGENTS.md"),
+        ("GitHub Copilot", WORKSPACE_ROOT / ".github" / "copilot-instructions.md", "AGENTS.md"),
+        ("EditorConfig", WORKSPACE_ROOT / ".editorconfig", None),
+    ]
+    for name, apath, ref in adapters:
+        if not apath.exists():
+            checks.append(("WARN", "Adapters", f"Adapter for {name} is missing: {apath.name}"))
+        else:
+            if ref:
+                content = apath.read_text(encoding="utf-8", errors="ignore")
+                if ref in content:
+                    checks.append(("PASS", "Adapters", f"{name} adapter ({apath.name}) correctly links to {ref}"))
+                else:
+                    checks.append(("WARN", "Adapters", f"{name} adapter ({apath.name}) does not mention {ref}"))
+            else:
+                checks.append(("PASS", "Adapters", f"{name} ({apath.name}) configured"))
+
+    # 3. AI Ignore SSOT
+    if AIIGNORE_FILE.exists():
+        checks.append(("PASS", "AI Ignore", ".agents/aiignore SSOT exists"))
+        ign_ok, ign_errs = check_aiignore_sync()
+        if ign_ok:
+            checks.append(("PASS", "AI Ignore", ".cursorignore and .claudeignore are fully in sync"))
+        else:
+            for err in ign_errs:
+                checks.append(("WARN", "AI Ignore", err))
+    else:
+        checks.append(("WARN", "AI Ignore", ".agents/aiignore is missing (create with default exclusion rules)"))
+
+    # 4. MCP Configuration & Sync
+    if MCP_FILE.exists():
+        checks.append(("PASS", "MCP", ".agents/mcp.json SSOT exists"))
+        try:
+            mcp_cfg = load_mcp_config()
+            srv_count = len(mcp_cfg.get("mcpServers", {}))
+            checks.append(("PASS", "MCP", f"{srv_count} MCP server(s) configured in .agents/mcp.json"))
+            mcp_ok, mcp_errs = check_mcp_sync(mcp_cfg)
+            if mcp_ok:
+                checks.append(("PASS", "MCP", "Adapters (.vscode/mcp.json, .mcp.json) in sync"))
+            else:
+                for err in mcp_errs:
+                    checks.append(("FAIL", "MCP", err))
+        except Exception as e:
+            checks.append(("FAIL", "MCP", f"Error parsing .agents/mcp.json: {e}"))
+    else:
+        checks.append(("WARN", "MCP", ".agents/mcp.json is missing"))
+
+    # 5. JSON Schemas
+    if (SCHEMAS_DIR / "registry.schema.json").exists() and (SCHEMAS_DIR / "mcp.schema.json").exists():
+        checks.append(("PASS", "Schemas", "Local JSON schemas present (.agents/schemas/)"))
+    else:
+        checks.append(("WARN", "Schemas", "One or more JSON schemas missing in .agents/schemas/"))
+
+    # 6. Security & Leaks
+    leak_patterns = [
+        (r"AIza[0-9A-Za-z-_]{35}", "Google API Key"),
+        (r"sk-[a-zA-Z0-9_-]{20,}", "OpenAI/Anthropic API Key"),
+        (r"ghp_[a-zA-Z0-9]{36}", "GitHub Personal Access Token"),
+    ]
+    leaks_found = 0
+    for root, _, files in os.walk(AGENTS_DIR):
+        for fname in files:
+            if fname.endswith((".md", ".py", ".sh", ".json", ".yaml", ".yml")) and not fname.startswith("."):
+                fpath = Path(root) / fname
+                try:
+                    text = fpath.read_text(encoding="utf-8", errors="ignore")
+                    for pat, desc in leak_patterns:
+                        if re.search(pat, text):
+                            checks.append(("FAIL", "Security", f"Possible {desc} leaked in {fpath.relative_to(WORKSPACE_ROOT)}"))
+                            leaks_found += 1
+                except Exception:
+                    pass
+    if leaks_found == 0:
+        checks.append(("PASS", "Security", "No exposed API keys or credentials detected in .agents/"))
+
+    # Print results grouped by category
+    categories = ["System", "Architecture", "Adapters", "AI Ignore", "MCP", "Schemas", "Security"]
+    total_passed = 0
+    total_warn = 0
+    total_fail = 0
+
+    for cat in categories:
+        cat_checks = [c for c in checks if c[1] == cat]
+        if not cat_checks:
+            continue
+        print(f"\n📂 [{cat}]")
+        for status, _, msg in cat_checks:
+            if status == "PASS":
+                print(f"  🟢 [OK] {msg}")
+                total_passed += 1
+            elif status == "WARN":
+                print(f"  ⚠️  [WARN] {msg}")
+                total_warn += 1
+            else:
+                print(f"  ❌ [FAIL] {msg}")
+                total_fail += 1
+
+    print("\n-------------------------------------------------------------------------------------")
+    print(f"Diagnostics: {total_passed} passed, {total_warn} warning(s), {total_fail} failure(s).")
+    if total_fail == 0:
+        print("🎉 [HEALTHY] Your workspace configuration is in optimal shape!")
+    else:
+        print("⚠️  [ACTION REQUIRED] Address the failing checks above to ensure full agent capability.")
+    print("=====================================================================================\n")
+
+
+def cmd_init(args: argparse.Namespace) -> None:
+    """Scaffold or initialize project context and stack in AGENTS.md."""
+    print("\n======================= 🚀 Initialize Universal AI Workspace =======================")
+    agents_md = WORKSPACE_ROOT / "AGENTS.md"
+    if not agents_md.exists():
+        print("❌ AGENTS.md not found in workspace root.")
+        return
+
+    content = agents_md.read_text(encoding="utf-8")
+
+    project_name = getattr(args, "name", None)
+    stack = getattr(args, "stack", None)
+    goal = getattr(args, "goal", None)
+    author = getattr(args, "author", None)
+    non_interactive = getattr(args, "non_interactive", False)
+
+    if not non_interactive:
+        if not project_name:
+            try:
+                def_name = WORKSPACE_ROOT.name
+                val = input(f"Enter project name [{def_name}]: ").strip()
+                project_name = val if val else def_name
+            except (KeyboardInterrupt, EOFError):
+                print("\n[INFO] Cancelled.")
+                return
+
+        if not stack:
+            try:
+                val = input("Enter technologies / stack (e.g. React 19, Vite, TypeScript, Tailwind): ").strip()
+                stack = val if val else "To be defined based on project requirements"
+            except (KeyboardInterrupt, EOFError):
+                print("\n[INFO] Cancelled.")
+                return
+
+        if not goal:
+            try:
+                val = input("Enter project goal / purpose: ").strip()
+                goal = val if val else "Provide a clean, scalable workspace architecture"
+            except (KeyboardInterrupt, EOFError):
+                print("\n[INFO] Cancelled.")
+                return
+
+        if not author:
+            try:
+                val = input("Enter author / maintainer name (optional): ").strip()
+                author = val if val else ""
+            except (KeyboardInterrupt, EOFError):
+                pass
+    else:
+        project_name = project_name or WORKSPACE_ROOT.name
+        stack = stack or "To be defined based on project requirements"
+        goal = goal or "Provide a clean, scalable workspace architecture"
+
+    # Replace placeholders in AGENTS.md
+    content = re.sub(r"- \*\*Project\*\*:.*", f"- **Project**: `{project_name}`", content)
+    content = re.sub(r"- \*\*Stack / Technologies\*\*:.*", f"- **Stack / Technologies**: {stack}", content)
+    content = re.sub(r"- \*\*Goal\*\*:.*", f"- **Goal**: {goal}", content)
+
+    agents_md.write_text(content, encoding="utf-8")
+    print(f"[*] Updated {agents_md.name} with project context:")
+    print(f"    • Name : {project_name}")
+    print(f"    • Stack: {stack}")
+    print(f"    • Goal : {goal}")
+
+    # Synchronize MCP
+    if MCP_FILE.exists():
+        cmd_mcp_sync(load_mcp_config())
+
+    # Synchronize AI Ignore
+    if AIIGNORE_FILE.exists():
+        sync_aiignore()
+
+    print("\n✅ Initialization complete. Running environment doctor...")
+    cmd_doctor(args)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Universal Agent Resource Manager for .agents/ folder.",
@@ -1636,6 +1979,28 @@ def main() -> None:
     remove_p = subparsers.add_parser("remove", help="Remove a resource and deregister it.")
     remove_p.add_argument("name", help="Name of the resource to remove")
     remove_p.set_defaults(func=cmd_remove)
+
+    # DOCTOR (Diagnostics)
+    doctor_p = subparsers.add_parser("doctor", help="Run comprehensive environment and configuration diagnostics.")
+    doctor_p.set_defaults(func=cmd_doctor)
+
+    # INIT (Workspace Scaffolding)
+    init_p = subparsers.add_parser("init", help="Scaffold or initialize project context and stack in AGENTS.md.")
+    init_p.add_argument("--name", help="Project name")
+    init_p.add_argument("--stack", help="Target tech stack or framework")
+    init_p.add_argument("--goal", help="Project objective or purpose")
+    init_p.add_argument("--author", help="Author or maintainer name")
+    init_p.add_argument("--non-interactive", action="store_true", help="Skip interactive prompts")
+    init_p.set_defaults(func=cmd_init)
+
+    # IGNORE (AI Exclusions)
+    ignore_p = subparsers.add_parser("ignore", help="Manage AI assistant exclusion rules (.agents/aiignore).")
+    ignore_sub = ignore_p.add_subparsers(dest="ignore_action", required=False)
+    ignore_sync_p = ignore_sub.add_parser("sync", help="Synchronize .agents/aiignore to .cursorignore and .claudeignore.")
+    ignore_sync_p.set_defaults(func=cmd_ignore, ignore_action="sync")
+    ignore_check_p = ignore_sub.add_parser("check", help="Check parity between .agents/aiignore and adapter files.")
+    ignore_check_p.set_defaults(func=cmd_ignore, ignore_action="check")
+    ignore_p.set_defaults(func=cmd_ignore, ignore_action="sync")
 
     args = parser.parse_args()
     args.func(args)
