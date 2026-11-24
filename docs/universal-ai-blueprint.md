@@ -25,7 +25,7 @@ When multiple AI coding assistants collaborate on the same repository, avoid def
 ### The Three Golden Rules
 
 1. **Single Source of Truth (`AGENTS.md`):** All rules, conventions, architectural decisions, and lifecycle requirements must live in `AGENTS.md`.
-2. **Lightweight Tool Adapters:** Tool-specific files (`CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.cursorrules`) must be minimal shims (< 15 lines) pointing back to `./AGENTS.md`.
+2. **Lightweight Tool Adapters:** Tool-specific files (`CLAUDE.md`, `GEMINI.md`, `.windsurfrules`, `.github/copilot-instructions.md`, `.cursorrules`) must be minimal shims (< 15 lines) pointing back to `./AGENTS.md`. Natively supported assistants (such as OpenAI Codex) consume `AGENTS.md` directly.
 3. **English for All AI Artifacts:** Write all AI configurations, instructions, rules, prompts, and skills in English. English produces optimal tokenization, clearer instruction following, and lower token consumption across modern LLMs.
 
 ---

@@ -12,9 +12,11 @@ This document details the configuration strategy adopted for this repository to 
 Modern AI coding assistants look for specific configuration files in different locations:
 
 - **Claude Code**: Looks for `CLAUDE.md` in the project root.
-- **Antigravity**: Hierarchically loads `GEMINI.md` and `AGENTS.md` into its context.
+- **Antigravity / Gemini CLI**: Hierarchically loads `GEMINI.md` and `AGENTS.md` into its context.
 - **GitHub Copilot**: Reads `.github/copilot-instructions.md` and settings defined in `.vscode/settings.json`.
 - **Cursor**: Reads `.cursorrules` in the project root.
+- **Windsurf (Cascade)**: Reads `.windsurfrules` in the project root.
+- **Codex / OpenAI**: Consumes `AGENTS.md` natively in the project root.
 
 Copying and pasting identical project guidelines (architecture, coding conventions, styling rules, workflows, etc.) across each file creates:
 
@@ -37,15 +39,17 @@ flowchart TD
 
     subgraph Adapters["Tool-Specific Adapters"]
         CLAUDE["CLAUDE.md<br/>(Claude Code)"]
-        GEMINI["GEMINI.md<br/>(Antigravity)"]
+        GEMINI["GEMINI.md<br/>(Antigravity / Gemini CLI)"]
         COPILOT[".github/copilot-instructions.md<br/>(GitHub Copilot)"]
         CURSOR[".cursorrules<br/>(Cursor)"]
+        WINDSURF[".windsurfrules<br/>(Windsurf)"]
     end
 
     CLAUDE -->|Reads / References| AGENTS
     GEMINI -->|Reads / References| AGENTS
     COPILOT -->|Reads / References| AGENTS
     CURSOR -->|Reads / References| AGENTS
+    WINDSURF -->|Reads / References| AGENTS
 ```
 
 ---
@@ -80,6 +84,11 @@ flowchart TD
 
 - **Location:** Project root.
 - **Role:** Direct relative pointer to `./AGENTS.md` ensuring Cursor loads the single source of truth for both chat and composer workflows.
+
+### 6. `.windsurfrules` _(Adapter for Windsurf / Cascade)_
+
+- **Location:** Project root.
+- **Role:** Direct relative pointer to `./AGENTS.md` ensuring Windsurf Cascade loads the single source of truth.
 
 ---
 
