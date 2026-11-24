@@ -227,10 +227,101 @@ Keep VS Code workspace configurations generic, stack-agnostic, and focused on cl
   "recommendations": [
     "github.copilot",
     "github.copilot-chat",
-    "anthropic.claude-code"
+    "anthropic.claude-code",
+    "editorconfig.editorconfig"
   ]
 }
 ```
+
+### G. Root: `.editorconfig` (Editor-Agnostic Formatting SSOT)
+
+`.editorconfig` acts as the universal formatting Single Source of Truth across editors (VS Code, Cursor, JetBrains, Neovim, and Zed), complementing `.vscode/settings.json` without coupling formatting rules to a single IDE:
+
+```ini
+# EditorConfig is awesome: https://EditorConfig.org
+# Single Source of Truth (SSOT) for cross-editor formatting standards.
+
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown: preserve trailing whitespace for hard line breaks
+[*.md]
+trim_trailing_whitespace = false
+
+# Python (PEP 8)
+[*.{py,pyi}]
+indent_size = 4
+
+# Makefiles require literal tabs
+[{Makefile,makefile,GNUmakefile,*.mk}]
+indent_style = tab
+
+# Go (gofmt standard)
+[*.go]
+indent_style = tab
+
+# Shell scripts must always use LF
+[*.{sh,bash,zsh}]
+end_of_line = lf
+
+# Windows batch scripts require CRLF
+[*.{bat,cmd}]
+end_of_line = crlf
+```
+
+### H. Universal AI Exclusions: `.agents/aiignore` (SSOT)
+
+To prevent AI assistants from burning context tokens on massive dependencies, build directories, or accidentally indexing credentials (`.env`, private keys), define exclusions centrally in `.agents/aiignore` and synchronize to `.cursorignore` and `.claudeignore`:
+
+```gitignore
+# .agents/aiignore - SSOT for AI Assistant Exclusions
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+credentials.json
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+dist/
+build/
+out/
+.cache/
+__pycache__/
+*.log
+.DS_Store
+.cursorindexing/
+.claude/
+```
+
+Synchronize automatically with:
+```bash
+python3 .agents/scripts/agents-manager.py ignore sync
+```
+
+### I. Automated Quality & CI (Husky Pre-Commit & GitHub Actions)
+
+To guarantee that agent resources remain healthy and all shims stay synchronized, enforce automated validation:
+
+1. **Husky Pre-Commit Hook (`.husky/pre-commit`):**
+   ```sh
+   #!/bin/sh
+   python3 .agents/scripts/agents-manager.py verify
+   ```
+
+2. **GitHub Actions Workflow (`.github/workflows/validate-agents.yml`):**
+   Runs `agents-manager.py verify` and `doctor` on every push and pull request.
 
 ---
 
@@ -308,9 +399,51 @@ cat << 'EOF' > .vscode/extensions.json
   "recommendations": [
     "github.copilot",
     "github.copilot-chat",
-    "anthropic.claude-code"
+    "anthropic.claude-code",
+    "editorconfig.editorconfig"
   ]
 }
+EOF
+
+# 5. Create universal .editorconfig
+cat << 'EOF' > .editorconfig
+# EditorConfig is awesome: https://EditorConfig.org
+# Single Source of Truth (SSOT) for cross-editor formatting standards.
+
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown: preserve trailing whitespace for hard line breaks
+[*.md]
+trim_trailing_whitespace = false
+
+# Python (PEP 8)
+[*.{py,pyi}]
+indent_size = 4
+
+# Makefiles require literal tabs
+[{Makefile,makefile,GNUmakefile,*.mk}]
+indent_style = tab
+
+# Go (gofmt standard)
+[*.go]
+indent_style = tab
+
+# Shell scripts must always use LF
+[*.{sh,bash,zsh}]
+end_of_line = lf
+
+# Windows batch scripts require CRLF
+[*.{bat,cmd}]
+end_of_line = crlf
 EOF
 
 echo "✅ AI architecture scaffolded successfully."

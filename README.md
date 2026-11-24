@@ -14,16 +14,23 @@ This template implements a **Single Source of Truth (SSOT)** model to coordinate
 ├── CLAUDE.md                  # Claude Code adapter -> AGENTS.md
 ├── GEMINI.md                  # Antigravity adapter -> AGENTS.md
 ├── .cursorrules               # Cursor adapter -> AGENTS.md
+├── .cursorignore              # Cursor ignore adapter -> .agents/aiignore
+├── .claudeignore              # Claude Code ignore adapter -> .agents/aiignore
+├── .editorconfig              # Cross-editor formatting standards (SSOT)
 ├── .github/
-│   └── copilot-instructions.md# GitHub Copilot adapter -> AGENTS.md
+│   ├── copilot-instructions.md# GitHub Copilot adapter -> AGENTS.md
+│   └── workflows/             # CI automated validation
 ├── .agents/                   # Universal agent resources directory
+│   ├── aiignore               # Universal AI assistant ignore rules (SSOT)
 │   ├── agents/                # Custom agent personas
 │   ├── hooks/                 # Lifecycle hooks
 │   ├── instructions/          # Extended modular instructions
 │   ├── plugins/               # Namespaced plugin bundles
 │   ├── prompts/               # Reusable prompt templates
+│   ├── schemas/               # JSON Schemas for registry and MCP validation
 │   ├── scripts/               # Automation scripts (agents-manager.py)
 │   ├── skills/                # Reusable procedural skills
+│   ├── mcp.json               # Canonical MCP server definitions
 │   └── registry.json          # Source & provenance registry
 └── docs/                      # Architectural strategy and guides
 ```
@@ -48,6 +55,15 @@ This template implements a **Single Source of Truth (SSOT)** model to coordinate
 The bundled utility `.agents/scripts/agents-manager.py` manages the entire lifecycle of agent resources:
 
 ```bash
+# 🚀 Init: Initialize workspace context and project goals in AGENTS.md
+python3 .agents/scripts/agents-manager.py init [--name <name>] [--stack <stack>]
+
+# 🩺 Doctor: Deep diagnostic health check on environment, adapters & security
+python3 .agents/scripts/agents-manager.py doctor
+
+# 🛡️ Ignore: Synchronize .agents/aiignore SSOT to .cursorignore & .claudeignore
+python3 .agents/scripts/agents-manager.py ignore sync
+
 # 🧭 Discover: Scan a remote repo and get intelligent import recommendations
 python3 .agents/scripts/agents-manager.py discover <github-url> [--import-recommended]
 
