@@ -23,8 +23,15 @@
       "description": "Configured MCP servers keyed by server identifier",
       "additionalProperties": {
         "type": "object",
-        "required": ["command"],
         "properties": {
+          "type": {
+            "type": "string",
+            "description": "Transport type (e.g. stdio, http, sse)"
+          },
+          "url": {
+            "type": "string",
+            "description": "Server URL for HTTP/SSE based remote MCP servers"
+          },
           "command": {
             "type": "string",
             "description": "Executable command (e.g. npx, uvx, node, python3, docker)"
@@ -52,6 +59,10 @@
             "description": "Whether the server is temporarily disabled"
           }
         },
+        "anyOf": [
+          { "required": ["command"] },
+          { "required": ["url"] }
+        ],
         "additionalProperties": true
       }
     }

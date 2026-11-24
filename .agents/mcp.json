@@ -11,6 +11,11 @@
       ],
       "env": {},
       "description": "Secure local workspace file read and edit tools"
+    },
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp",
+      "description": "Official Figma remote MCP server for design context, canvas automation, and Code Connect"
     }
   }
 }
