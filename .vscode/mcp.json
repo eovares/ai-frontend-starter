@@ -24,6 +24,15 @@
       "env": {},
       "description": "Official Playwright MCP server for browser automation, web testing, and accessibility-based interaction"
     },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ],
+      "env": {},
+      "description": "Official Chrome DevTools MCP server for live Chrome browser inspection, debugging, console/network analysis, and performance profiling via CDP"
+    },
     "typescript-lsp": {
       "command": "npx",
       "args": [
