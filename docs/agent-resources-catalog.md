@@ -9,19 +9,24 @@
 This directory serves as the centralized, human-readable catalog and domain taxonomy for all agent capabilities within `.agents/` and workspace configurations.
 
 ```
-                                  .agents/ ARTIFACT REGISTRY
- ┌────────────────────────────────────────────────────────────────────────────────────────┐
- │                                                                                        │
- │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                    │
- │  26 Skills, 1 MCP                       │  5 Skills, 1 Instruction, 1 Agent            │
- │                                                                                        │
- │  🧪 Web App Testing & Playwright        │  📝 Documentation & Technical Writing        │
- │  4 Skills, 2 Agents, 2 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
- │                                                                                        │
- │  ⚙️ AgentOps & Architecture             │  🔌 Extensibility Points                     │
- │  1 Skill, 1 Agent, 1 Script, 2 Schemas   │  Hooks (.gitkeep), Plugins, Prompts          │
- │                                                                                        │
- └────────────────────────────────────────────────────────────────────────────────────────┘
+                                  .agents/ ARTIFACT REGISTRY (84 Resources)
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                                                                                  │
+ │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                              │
+ │  26 Skills, 1 MCP (27 assets)           │  5 Skills, 1 Instruction, 1 Agent (7 assets)           │
+ │                                                                                                  │
+ │  🧪 Web App Testing & Playwright        │  📝 Documentation & Visual Diagramming                 │
+ │  5 Skills, 3 Instructions, 2 Agents,    │  9 Skills, 2 Instructions, 1 Agent (12 assets)          │
+ │  1 MCP (11 assets)                      │                                                        │
+ │                                                                                                  │
+ │  ⚙️ AgentOps, Governance & Workflows    │  ☁️ CI/CD, GitHub Actions & Releases                   │
+ │  10 Skills, 2 Instructions, 1 Agent,    │  7 Skills (7 assets)                                   │
+ │  1 Script, 2 Schemas, 1 MCP (17 assets) │                                                        │
+ │                                                                                                  │
+ │  🛡️ Security, SAST & Vulnerabilities    │  🔌 Extensibility Points                               │
+ │  3 Skills (3 assets)                    │  Hooks (.gitkeep), Plugins, Prompts                    │
+ │                                                                                                  │
+ └──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 Every resource is tracked in the provenance registry [`.agents/registry.json`](../.agents/registry.json) and classified by domain specialization and functional subcategory below.
@@ -123,7 +128,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 ---
 
 ### 3. 🧪 Web App Testing, Playwright & Browser QA
-*Comprehensive browser automation, Playwright end-to-end test generation, website exploration, and runtime regression diagnostics.*
+*Comprehensive browser automation, Playwright end-to-end test generation, website exploration, test gap audits, and runtime regression diagnostics.*
 
 #### 3.1. E2E Automation, Exploration & Test Generation (Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -132,6 +137,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | **Skill** | `playwright-generate-test` | `.agents/skills/playwright-generate-test/SKILL.md` | Generates Playwright end-to-end tests based on user scenarios via Playwright MCP. |
 | **Skill** | `playwright-explore-website` | `.agents/skills/playwright-explore-website/SKILL.md` | Explores live websites and interactive workflows to discover edge cases using Playwright MCP. |
 | **Skill** | `kb-playwright-testing` | `.agents/skills/kb-playwright-testing/SKILL.md` | Reference data for Playwright accessibility testing with @axe-core/playwright, keyboard scans, and a11y trees. |
+| **Skill** | `test-gap-audit` | `.agents/skills/test-gap-audit/SKILL.md` | Maps source files against tests using import scanning (`scripts/coverage_map.py`) to uncover genuine test coverage gaps. |
 
 #### 3.2. Model Context Protocol Browser Engine (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -143,6 +149,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Instruction** | `playwright-typescript.md` | `.agents/instructions/playwright-typescript.md` | Playwright TypeScript test generation rules, robust locators, and assertions (`applyTo: '**/tests/**/*.ts'`). |
 | **Instruction** | `nodejs-javascript-vitest.md` | `.agents/instructions/nodejs-javascript-vitest.md` | Guidelines for Node.js and JavaScript development with Vitest unit/integration testing (`applyTo: '**/*.js, **/*.mjs, **/*.cjs'`). |
+| **Instruction** | `qa-engineering-best-practices.md` | `.agents/instructions/qa-engineering-best-practices.md` | Comprehensive QA engineering best practices covering test strategy, test pyramid, assertions, and bug reporting. |
 
 #### 3.4. Runtime Regression & Diagnostic Specialists (Agents)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -156,43 +163,52 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 
 ---
 
-### 4. 📝 Documentation, Technical Writing & LLM Context
-*Technical documentation architecture, Markdown accessibility standards, and LLM context files.*
+### 4. 📝 Documentation, Technical Writing & Visual Diagramming
+*Technical documentation architecture, Markdown accessibility standards, Architectural Decision Records (ADRs), codebase onboarding, and visual diagramming.*
 
-#### 4.1. Technical Documentation Frameworks & Drift Audits (Skills)
+#### 4.1. Technical Documentation Frameworks & Architectural Records (Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Skill** | `documentation-writer` | `.agents/skills/documentation-writer/SKILL.md` | Diátaxis documentation authoring framework (Tutorials, How-Tos, Technical References, Concept Explanations). |
 | **Skill** | `docs-sync-audit` | `.agents/skills/docs-sync-audit/SKILL.md` | Read-only documentation drift auditor checking code implementation vs. documentation claims. |
 | **Skill** | `create-readme` | `.agents/skills/create-readme/SKILL.md` | Scaffolds comprehensive, standardized project `README.md` documents. |
+| **Skill** | `create-architectural-decision-record` | `.agents/skills/create-architectural-decision-record/SKILL.md` | Creates Architectural Decision Record (ADR) documents for AI-optimized architecture decision documentation. |
+| **Skill** | `acquire-codebase-knowledge` | `.agents/skills/acquire-codebase-knowledge/SKILL.md` | Maps, documents, and onboards into an existing codebase with multi-language scanner (`scripts/scan.py`) and templates. |
 
-#### 4.2. LLM Context Standards: llms.txt (Skills)
+#### 4.2. Visual Diagramming & Document Review (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `excalidraw-diagram-generator` | `.agents/skills/excalidraw-diagram-generator/SKILL.md` | Generates visual Excalidraw diagrams (.excalidraw JSON) from natural language descriptions for flowcharts, mind maps, and DFDs. |
+| **Skill** | `eyeball` | `.agents/skills/eyeball/SKILL.md` | Visual document review skill generating inline screenshots from PDFs, DOCX, PPTX, and HTML (`tools/eyeball.py`). |
+
+#### 4.3. LLM Context Standards: llms.txt (Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Skill** | `create-llms` | `.agents/skills/create-llms/SKILL.md` | Generates standardized `llms.txt` and `llms-full.txt` files compliant with the llmstxt.org specification. |
 | **Skill** | `update-llms` | `.agents/skills/update-llms/SKILL.md` | Keeps `llms.txt` synchronized with ongoing repository, specification, and documentation changes. |
 
-#### 4.3. Markdown Syntax & Accessibility Standards (Instructions)
+#### 4.4. Markdown Syntax & Accessibility Standards (Instructions)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Instruction** | `markdown-gfm.md` | `.agents/instructions/markdown-gfm.md` | GitHub-Flavored Markdown syntax rules, callout alerts, tables, and Mermaid diagram constraints. |
 | **Instruction** | `markdown-accessibility.md` | `.agents/instructions/markdown-accessibility.md` | Markdown accessibility standards adhering to WCAG and GitHub's 5 best practices. |
 
-#### 4.4. Documentation Quality & Accessibility Specialists (Agents)
+#### 4.5. Documentation Quality & Accessibility Specialists (Agents)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Agent** | `markdown-accessibility-assistant.md` | `.agents/agents/markdown-accessibility-assistant.md` | Specialized persona for auditing and improving accessibility across Markdown documentation. |
 
 ---
 
-### 5. ⚙️ AgentOps, Governance & Workspace Architecture
-*Core infrastructure, automation utilities, JSON schemas, registry provenance, and cross-assistant governance.*
+### 5. ⚙️ AgentOps, Governance & Developer Workflows
+*Core infrastructure, lifecycle custodians, prompt optimization, AI safety guardrails, code review, Git workflows, and formatting standards.*
 
 #### 5.1. Resource Architecture & Lifecycle Custodians (Agents & Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Agent** | `agents-manager.md` | `.agents/agents/agents-manager.md` | Custodian agent for resource lifecycle: discovery, import, neutralization, verification, and MCP management. |
 | **Skill** | `manage-agent-resources` | `.agents/skills/manage-agent-resources/SKILL.md` | Universal toolkit for discovering, scaffolding, verifying, updating, and exporting `.agents/` assets. |
+| **Skill** | `create-agentsmd` | `.agents/skills/create-agentsmd/SKILL.md` | Generates a standardized AGENTS.md file for a repository adhering to the open format standard. |
 
 #### 5.2. Workspace Automation & Operational Tooling (Scripts)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -204,41 +220,98 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Schema** | `registry.schema.json` | `.agents/schemas/registry.schema.json` | JSON Schema validating the structure, metadata, and provenance of `.agents/registry.json`. |
 | **Schema** | `mcp.schema.json` | `.agents/schemas/mcp.schema.json` | JSON Schema validating MCP configuration formats and tool definitions. |
-| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 58 local and imported resources. |
+| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 84 local and imported resources. |
 
 #### 5.4. Workspace Execution Environment Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **MCP** | `filesystem` | `.agents/mcp.json` | Local filesystem MCP server enabling safe file reading and editing in workspace paths. |
 
-#### 5.5. Core Governance & Security Exclusions (Governance & Policies)
+#### 5.5. Core Governance, Safety Guardrails & Prompt Tuning (Governance, Instructions & Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Governance** | `AGENTS.md` | `AGENTS.md` | Universal Single Source of Truth (SSOT) defining conventions for all AI coding assistants. |
 | **Governance** | `GEMINI.md` | `GEMINI.md` | Antigravity-specific entry point routing instructions to `AGENTS.md`. |
 | **Exclusions** | `aiignore` | `.agents/aiignore` | Universal context exclusion rules kept synchronized with `.cursorignore` and `.claudeignore`. |
+| **Instruction** | `taming.md` | `.agents/instructions/taming.md` | Core directives to prevent AI coding assistants from wreaking havoc, enforcing user scope and factual verification. |
+| **Skill** | `doublecheck` | `.agents/skills/doublecheck/SKILL.md` | Three-layer verification pipeline extracting verifiable claims and checking for hallucination patterns. |
+| **Skill** | `prompt-optimizer` | `.agents/skills/prompt-optimizer/SKILL.md` | Turns rough prompts into polished, ready-to-send prompts optimized for chat interfaces across any LLM model. |
 
-#### 5.6. CI/CD & Package Release Automation (Skills)
+#### 5.6. Code Review, PR Triage & Refactoring (Skills & Instructions)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
-| **Skill** | `npm-trusted-publishing` | `.agents/skills/npm-trusted-publishing/SKILL.md` | Configures and troubleshoots npm trusted publishing (OIDC) in GitHub Actions without long-lived tokens. |
+| **Instruction** | `code-review-generic.md` | `.agents/instructions/code-review-generic.md` | Generic code review instructions for AI coding assistants that can be customized for any project. |
+| **Skill** | `pr-address-feedback` | `.agents/skills/pr-address-feedback/SKILL.md` | Walks through PR review comments one-by-one to triage and build an approvable resolution plan. |
+| **Skill** | `refactor-plan` | `.agents/skills/refactor-plan/SKILL.md` | Creates a concrete multi-phase plan before executing multi-file refactoring. |
+
+#### 5.7. Git Version Control & Branch Management (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `git-commit` | `.agents/skills/git-commit/SKILL.md` | Examines diff, stages files, writes Conventional Commits message, and commits safely. |
+| **Skill** | `conventional-branch` | `.agents/skills/conventional-branch/SKILL.md` | Creates Git branches following the Conventional Branch specification with standard prefixes. |
+| **Skill** | `rebase-current-branch` | `.agents/skills/rebase-current-branch/SKILL.md` | Rebases current feature branch onto latest upstream default branch with safe conflict handling. |
+
+#### 5.8. Workspace Environment & Formatting Config (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `editorconfig` | `.agents/skills/editorconfig/SKILL.md` | Generates a comprehensive and best-practice-oriented .editorconfig file based on project analysis. |
 
 ---
 
-### 6. 🔌 Extensibility Points (Hooks, Plugins & Prompts)
+### 6. ☁️ CI/CD, GitHub Actions & Release Automation
+*Automated GitHub Actions pipelines, security hardening, workflow specifications, Dependabot maintenance, and automated package publishing.*
+
+#### 6.1. Workflow Specifications & Release Pipelines (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `create-github-action-workflow-specification` | `.agents/skills/create-github-action-workflow-specification/SKILL.md` | Creates formal specifications for GitHub Actions CI/CD workflows optimized for AI consumption. |
+| **Skill** | `github-release` | `.agents/skills/github-release/SKILL.md` | Guides end-to-end releases of GitHub libraries with SemVer versioning and Keep a Changelog. |
+| **Skill** | `npm-trusted-publishing` | `.agents/skills/npm-trusted-publishing/SKILL.md` | Configures and troubleshoots npm trusted publishing (OIDC) in GitHub Actions without long-lived tokens. |
+
+#### 6.2. Dependency Automation & Supply Chain (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `dependabot` | `.agents/skills/dependabot/SKILL.md` | Configures and maintains Dependabot version updates, security updates, and triage commands. |
+
+#### 6.3. CI/CD Hardening, Performance & Efficiency (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `github-actions-hardening` | `.agents/skills/github-actions-hardening/SKILL.md` | Security hardening reviewer for GitHub Actions workflows: script injection, action pinning, least privilege. |
+| **Skill** | `github-actions-efficiency` | `.agents/skills/github-actions-efficiency/SKILL.md` | Audits GitHub Actions workflow efficiency and recommends fixes to reduce CI minutes and costs. |
+| **Skill** | `github-actions-expert` | `.agents/skills/github-actions-expert/SKILL.md` | GitHub Actions specialist focused on secure CI/CD workflows, action pinning, OIDC, and least privilege. |
+
+---
+
+### 7. 🛡️ Security, SAST & Vulnerability Management
+*Deep codebase vulnerability scanning, secret detection, push protection, and static application security testing (SAST).*
+
+#### 7.1. Codebase Security & Vulnerability Auditing (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `security-review` | `.agents/skills/security-review/SKILL.md` | Deep codebase security review tracing data flows, injection flaws, secrets, and auth vulnerabilities. |
+
+#### 7.2. Secret Scanning & Static Analysis (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `secret-scanning` | `.agents/skills/secret-scanning/SKILL.md` | Configures GitHub Secret Scanning, push protection, custom regex patterns, and alert remediation. |
+| **Skill** | `codeql` | `.agents/skills/codeql/SKILL.md` | Configures and troubleshoots GitHub CodeQL code scanning, SARIF outputs, and alert triage. |
+
+---
+
+### 8. 🔌 Extensibility Points (Hooks, Plugins & Prompts)
 *Reserved canonical directories for expanding workspace functionality:*
 
-#### 6.1. Tool Execution & Lifecycle Interceptors (Hooks)
+#### 8.1. Tool Execution & Lifecycle Interceptors (Hooks)
 | Type | Location | Purpose & Extension Protocol |
 | :--- | :--- | :--- |
 | **Hooks** | `.agents/hooks/` | Lifecycle triggers (e.g. pre-tool linting, post-tool formatting, git commit verification). |
 
-#### 6.2. Namespaced Multi-Resource Bundles (Plugins)
+#### 8.2. Namespaced Multi-Resource Bundles (Plugins)
 | Type | Location | Purpose & Extension Protocol |
 | :--- | :--- | :--- |
 | **Plugins** | `.agents/plugins/` | Reusable, namespaced packages combining skills, agents, rules, and MCP servers into single units. |
 
-#### 6.3. Prompt Engineering & Reusable Templates (Prompts)
+#### 8.3. Prompt Engineering & Reusable Templates (Prompts)
 | Type | Location | Purpose & Extension Protocol |
 | :--- | :--- | :--- |
 | **Prompts** | `.agents/prompts/` | Reusable prompt templates, query structures, and domain-specific evaluation prompts. |
@@ -254,10 +327,12 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (26 Skills, 1 MCP)
 2. **💻 2. Front End Development** — 4 Subcategories (5 Skills, 1 Instruction, 1 Agent)
-3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (4 Skills, 1 MCP, 2 Instructions, 2 Agents)
-4. **📝 4. Documentation, Technical Writing & LLM Context** — 4 Subcategories (5 Skills, 1 Agent, 2 Instructions)
-5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 6 Subcategories (1 Skill, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
-6. **🔌 6. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
+3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (5 Skills, 1 MCP, 3 Instructions, 2 Agents)
+4. **📝 4. Documentation, Technical Writing & Visual Diagramming** — 5 Subcategories (9 Skills, 2 Instructions, 1 Agent)
+5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 8 Subcategories (10 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
+6. **☁️ 6. CI/CD, GitHub Actions & Release Automation** — 3 Subcategories (7 Skills)
+7. **🛡️ 7. Security, SAST & Vulnerability Management** — 2 Subcategories (3 Skills)
+8. **🔌 8. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
 
 ---
 
@@ -266,19 +341,21 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 | Action | Criterion | Threshold & Examples |
 | :--- | :--- | :--- |
 | **Add a Subcategory (`X.Y`)** | A new functional cluster belongs to an existing domain. | ≥ 1 new resource enhancing an existing domain (e.g., adding `3.5. Visual Regression Testing` under Testing). |
-| **Create a New Category (`N.`)** | A distinctly new technical ecosystem or engineering discipline is introduced. | ≥ 2-3 dedicated resources spanning multiple types (e.g., Backend APIs, Cloud DevOps, AI/ML). |
+| **Create a New Category (`N.`)** | A distinctly new technical ecosystem or engineering discipline is introduced. | ≥ 2-3 dedicated resources spanning multiple types (e.g., Web Performance, Accessibility, PWA/Mobile). |
 
 ---
 
-### Planned & Recommended Future Categories
+### Planned & Recommended Future Categories (Frontend & Web-Ecosystem Focused)
 
-As new tools and domain needs are introduced to the workspace, future categories should follow this standardized roadmap:
+As frontend technologies and toolchains evolve in this workspace, future domain categories must prioritize client-side engineering, user experience, and modern web application standards:
 
-- **🌐 Backend Engineering & APIs**: REST endpoints, GraphQL schemas, gRPC services, database ORMs (Prisma, Drizzle), serverless edge functions.
-- **☁️ DevOps, Infrastructure & CI/CD**: Docker containers, Kubernetes manifests, Terraform IaC, GitHub Actions workflows, cloud deployment pipelines.
-- **🛡️ Security, Privacy & Compliance**: SAST static analyzers, secret scanning, dependency vulnerability auditing (CVEs), OWASP compliance checkers.
-- **📊 Data Engineering & AI/ML Pipelines**: Dataset cleaning, model evaluation suites, vector database connectors, embedding pipelines.
-- **📱 Mobile & Cross-Platform Development**: React Native, Flutter, native Android/iOS tooling beyond SwiftUI.
+- **⚡ Web Performance, Core Web Vitals (CWV) & Bundle Optimization**: Client-side runtime profiling, Lighthouse CI auditing, bundle size analysis, tree-shaking & code-splitting strategies, resource hints (`preload`, `prefetch`, `fetchpriority`), image/font optimization pipelines, and LCP/INP/CLS metric optimization.
+- **♿ Web Accessibility (a11y) & Inclusive Design**: Automated accessibility engines (axe-core, pa11y), keyboard focus management and trap handling, screen reader testing (ARIA roles, accessible names), color contrast verification, and WCAG 2.2 AA/AAA compliance auditing.
+- **🔄 Client State Architecture, Data Fetching & Offline-First**: Client vs. server state management (TanStack Query, SWR, Zustand), optimistic UI updates, local database persistence (IndexedDB, Dexie), offline synchronization, and resilient network caching.
+- **📱 Progressive Web Apps (PWA) & Hybrid Mobile Web**: Web App Manifests, Service Worker lifecycles, offline fallbacks, background synchronization, Web Push notifications, mobile viewport handling, and hybrid runtimes (Capacitor, Tauri).
+- **🧩 Component Storybooks, Sandboxes & Visual Regression**: Storybook / Histoire component-driven development, visual regression testing (Chromatic, Percy, Playwright visual diffs), interactive prop sandboxes, and living component documentation.
+- **🎨 Motion, Scroll-Driven Animations & 3D WebGL**: Physics-based UI animations (Framer Motion, GSAP), CSS scroll-driven animations, View Transitions API, 3D interactive graphics (Three.js, WebGL, WebGPU), and SVG micro-interactions.
+- **🔒 Client-Side Security & Frontend Hardening**: Content Security Policy (CSP) authoring, Cross-Site Scripting (XSS) prevention, HTML sanitization (DOMPurify), secure client-side token storage, and Subresource Integrity (SRI).
 
 ---
 
