@@ -23,6 +23,19 @@
       ],
       "env": {},
       "description": "Official Playwright MCP server for browser automation, web testing, and accessibility-based interaction"
+    },
+    "typescript-lsp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-language-server",
+        "--workspace",
+        ".",
+        "--lsp",
+        "typescript-language-server --stdio"
+      ],
+      "env": {},
+      "description": "Universal TypeScript and JavaScript Language Server (LSP) bridge for semantic code intelligence, definitions, references, and diagnostics"
     }
   }
 }
