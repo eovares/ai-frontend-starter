@@ -25,6 +25,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Editor & AI Tooling Local Files
 # Note: Project settings in .vscode (settings.json, extensions.json, launch.json, snippets) are intentionally tracked.
 !.vscode/
