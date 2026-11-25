@@ -9,19 +9,19 @@
 This directory serves as the centralized, human-readable catalog and domain taxonomy for all agent capabilities within `.agents/` and workspace configurations.
 
 ```
-                                  .agents/ ARTIFACT REGISTRY (85 Resources)
+                                  .agents/ ARTIFACT REGISTRY (88 Resources)
  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                                  │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                              │
  │  26 Skills, 1 MCP (27 assets)           │  5 Skills, 1 MCP, 1 Inst, 1 Agent (8 assets)          │
  │                                                                                                  │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Visual Diagramming                 │
- │  5 Skills, 3 Instructions, 2 Agents,    │  9 Skills, 2 Instructions, 1 Agent (12 assets)          │
- │  1 MCP (11 assets)                      │                                                        │
+ │  6 Skills, 3 Instructions, 2 Agents,    │  9 Skills, 2 Instructions, 1 Agent (12 assets)          │
+ │  2 MCPs (13 assets)                     │                                                        │
  │                                                                                                  │
  │  ⚙️ AgentOps, Governance & Workflows    │  ☁️ CI/CD, GitHub Actions & Releases                   │
- │  10 Skills, 2 Instructions, 1 Agent,    │  7 Skills (7 assets)                                   │
- │  1 Script, 2 Schemas, 1 MCP (17 assets) │                                                        │
+ │  11 Skills, 2 Instructions, 1 Agent,    │  7 Skills (7 assets)                                   │
+ │  1 Script, 2 Schemas, 1 MCP (18 assets) │                                                        │
  │                                                                                                  │
  │  🛡️ Security, SAST & Vulnerabilities    │  🔌 Extensibility Points                               │
  │  3 Skills (3 assets)                    │  Hooks (.gitkeep), Plugins, Prompts                    │
@@ -143,11 +143,13 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | **Skill** | `playwright-explore-website` | `.agents/skills/playwright-explore-website/SKILL.md` | Explores live websites and interactive workflows to discover edge cases using Playwright MCP. |
 | **Skill** | `kb-playwright-testing` | `.agents/skills/kb-playwright-testing/SKILL.md` | Reference data for Playwright accessibility testing with @axe-core/playwright, keyboard scans, and a11y trees. |
 | **Skill** | `test-gap-audit` | `.agents/skills/test-gap-audit/SKILL.md` | Maps source files against tests using import scanning (`scripts/coverage_map.py`) to uncover genuine test coverage gaps. |
+| **Skill** | `chrome-devtools` | `.agents/skills/chrome-devtools/SKILL.md` | Browser automation, visual inspection, console/network debugging, and performance tracing via Chrome DevTools MCP. |
 
 #### 3.2. Model Context Protocol Browser Engine (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
-| **MCP** | `playwright` | `.agents/mcp.json` (`@playwright/mcp@latest`) | Official Playwright MCP server for browser automation, web testing, and accessibility snapshot workflows. |
+| **MCP** | `playwright` | `.agents/mcp.json` (`@playwright/mcp@latest`) | Official Playwright MCP server for browser automation, web testing, and accessibility snapshot workflows. Guide: [playwright-mcp-guide.md](../docs/playwright-mcp-guide.md). |
+| **MCP** | `chrome-devtools` | `.agents/mcp.json` (`chrome-devtools-mcp@latest`) | Official Chrome DevTools MCP server for live Chrome browser inspection, debugging, console/network analysis, and performance profiling via CDP. Guide: [chrome-devtools-mcp-guide.md](../docs/chrome-devtools-mcp-guide.md). |
 
 #### 3.3. Test Engineering Standards & Specifications (Instructions)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -225,7 +227,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Schema** | `registry.schema.json` | `.agents/schemas/registry.schema.json` | JSON Schema validating the structure, metadata, and provenance of `.agents/registry.json`. |
 | **Schema** | `mcp.schema.json` | `.agents/schemas/mcp.schema.json` | JSON Schema validating MCP configuration formats and tool definitions. |
-| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 85 local and imported resources. |
+| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 87 local and imported resources. |
 
 #### 5.4. Workspace Execution Environment Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -241,6 +243,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | **Instruction** | `taming.md` | `.agents/instructions/taming.md` | Core directives to prevent AI coding assistants from wreaking havoc, enforcing user scope and factual verification. |
 | **Skill** | `doublecheck` | `.agents/skills/doublecheck/SKILL.md` | Three-layer verification pipeline extracting verifiable claims and checking for hallucination patterns. |
 | **Skill** | `prompt-optimizer` | `.agents/skills/prompt-optimizer/SKILL.md` | Turns rough prompts into polished, ready-to-send prompts optimized for chat interfaces across any LLM model. |
+| **Skill** | `caveman` | `.agents/skills/caveman/SKILL.md` | Terse caveman voice mode: answer first, fluff gone, preserving all exact technical facts. |
 
 #### 5.6. Code Review, PR Triage & Refactoring (Skills & Instructions)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -332,9 +335,9 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (26 Skills, 1 MCP)
 2. **💻 2. Front End Development** — 5 Subcategories (5 Skills, 1 MCP, 1 Instruction, 1 Agent)
-3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (5 Skills, 1 MCP, 3 Instructions, 2 Agents)
+3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (6 Skills, 1 MCP, 3 Instructions, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & Visual Diagramming** — 5 Subcategories (9 Skills, 2 Instructions, 1 Agent)
-5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 8 Subcategories (10 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
+5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 8 Subcategories (11 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
 6. **☁️ 6. CI/CD, GitHub Actions & Release Automation** — 3 Subcategories (7 Skills)
 7. **🛡️ 7. Security, SAST & Vulnerability Management** — 2 Subcategories (3 Skills)
 8. **🔌 8. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
