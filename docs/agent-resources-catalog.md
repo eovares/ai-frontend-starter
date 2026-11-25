@@ -9,7 +9,7 @@
 This directory serves as the centralized, human-readable catalog and domain taxonomy for all agent capabilities within `.agents/` and workspace configurations.
 
 ```
-                                  .agents/ ARTIFACT REGISTRY (90 Resources)
+                                  .agents/ ARTIFACT REGISTRY (91 Resources)
  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                                  │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                              │
@@ -24,7 +24,7 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  │  1 Script, 2 Schemas, 1 MCP (20 assets) │                                                        │
  │                                                                                                  │
  │  🛡️ Security, SAST & Vulnerabilities    │  🔌 Extensibility Points                               │
- │  3 Skills (3 assets)                    │  Hooks (.gitkeep), Plugins, Prompts                    │
+ │  4 Skills (4 assets)                    │  Hooks (.gitkeep), Plugins, Prompts                    │
  │                                                                                                  │
  └──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -227,7 +227,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Schema** | `registry.schema.json` | `.agents/schemas/registry.schema.json` | JSON Schema validating the structure, metadata, and provenance of `.agents/registry.json`. |
 | **Schema** | `mcp.schema.json` | `.agents/schemas/mcp.schema.json` | JSON Schema validating MCP configuration formats and tool definitions. |
-| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 90 local and imported resources. |
+| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 91 local and imported resources. |
 
 #### 5.4. Workspace Execution Environment Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -303,6 +303,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Skill** | `security-review` | `.agents/skills/security-review/SKILL.md` | Deep codebase security review tracing data flows, injection flaws, secrets, and auth vulnerabilities. |
+| **Skill** | `security-audit` | `.agents/skills/security-audit/SKILL.md` | Defensive, source-first security guidance and vulnerability review for codebases, APIs, services, and daemons. |
 
 #### 7.2. Secret Scanning & Static Analysis (Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -345,7 +346,7 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 4. **📝 4. Documentation, Technical Writing & Visual Diagramming** — 5 Subcategories (9 Skills, 2 Instructions, 1 Agent)
 5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 9 Subcategories (13 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
 6. **☁️ 6. CI/CD, GitHub Actions & Release Automation** — 3 Subcategories (7 Skills)
-7. **🛡️ 7. Security, SAST & Vulnerability Management** — 2 Subcategories (3 Skills)
+7. **🛡️ 7. Security, SAST & Vulnerability Management** — 2 Subcategories (4 Skills)
 8. **🔌 8. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
 
 ---
