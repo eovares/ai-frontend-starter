@@ -72,3 +72,13 @@ All AI assistants and workspace tooling must strictly adhere to the following go
 7. **Provenance Tracking: User-Created Resources (`origin: "user"`)**: All user-created agent resources must be recorded in `.agents/registry.json` tracking author, creation date, canonical target path, and description.
 8. **Provenance Tracking: External / GitHub Resources (`origin: "remote"`)**: All remote imported resources must be recorded in `.agents/registry.json` tracking upstream Git URL, subpath, branch/ref, pinned commit hash, installation path, and timestamps for seamless future updates.
 9. **Canonical Automation Tooling & Specialized Agent**: Use the specialized agent (`.agents/agents/agents-manager.md`) and automation tool (`python3 .agents/scripts/agents-manager.py`) to discover external repository resources, manage MCP servers, create, verify, update, analyze, import, export, and maintain workspace resources.
+
+---
+
+## 5. Memory
+
+- **Locations**: Active lessons live in `.agents/instructions/<domain>-memory.md`; consolidated rules live in `.agents/instructions/<domain>.md` (fallback: `.agents/instructions/memory.md`). Initial domains: `web-components`, `tokens`, `testing`, `release`.
+- **Write Rule**: Any assistant may save a lesson by appending one entry to the end of the matching file, never rewriting earlier entries. Entry format: `## <short title>` followed by 1-3 lines (what happened, rule to follow). Skills (`remember`, `memory-merger`) are shortcuts, not requirements.
+- **Read Rule**: Before working on a domain, read its consolidated file (`<domain>.md`) and memory file (`<domain>-memory.md`) if they exist (`applyTo` is optional metadata not honored by all assistants).
+- **Consolidation**: Consolidate with `memory-merger` when a `-memory.md` file exceeds ~10 entries or on request.
+- **Privacy & Security**: Never store secrets, credentials, or personal data in memory files; lessons are reviewed before merging.
