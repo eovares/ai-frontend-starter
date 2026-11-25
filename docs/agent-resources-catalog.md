@@ -16,10 +16,10 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  │  26 Skills, 1 MCP                       │  5 Skills, 1 Instruction, 1 Agent            │
  │                                                                                        │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Technical Writing        │
- │  4 Skills, 2 Agents, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
+ │  4 Skills, 2 Agents, 2 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
  │                                                                                        │
  │  ⚙️ AgentOps & Architecture             │  🔌 Extensibility Points                     │
- │  1 Agent, 1 Script, 2 Schemas, 1 MCP    │  Hooks (.gitkeep), Plugins, Prompts          │
+ │  1 Skill, 1 Agent, 1 Script, 2 Schemas   │  Hooks (.gitkeep), Plugins, Prompts          │
  │                                                                                        │
  └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -142,6 +142,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Instruction** | `playwright-typescript.md` | `.agents/instructions/playwright-typescript.md` | Playwright TypeScript test generation rules, robust locators, and assertions (`applyTo: '**/tests/**/*.ts'`). |
+| **Instruction** | `nodejs-javascript-vitest.md` | `.agents/instructions/nodejs-javascript-vitest.md` | Guidelines for Node.js and JavaScript development with Vitest unit/integration testing (`applyTo: '**/*.js, **/*.mjs, **/*.cjs'`). |
 
 #### 3.4. Runtime Regression & Diagnostic Specialists (Agents)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -203,7 +204,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Schema** | `registry.schema.json` | `.agents/schemas/registry.schema.json` | JSON Schema validating the structure, metadata, and provenance of `.agents/registry.json`. |
 | **Schema** | `mcp.schema.json` | `.agents/schemas/mcp.schema.json` | JSON Schema validating MCP configuration formats and tool definitions. |
-| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 48 local and imported resources. |
+| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 58 local and imported resources. |
 
 #### 5.4. Workspace Execution Environment Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -216,6 +217,11 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | **Governance** | `AGENTS.md` | `AGENTS.md` | Universal Single Source of Truth (SSOT) defining conventions for all AI coding assistants. |
 | **Governance** | `GEMINI.md` | `GEMINI.md` | Antigravity-specific entry point routing instructions to `AGENTS.md`. |
 | **Exclusions** | `aiignore` | `.agents/aiignore` | Universal context exclusion rules kept synchronized with `.cursorignore` and `.claudeignore`. |
+
+#### 5.6. CI/CD & Package Release Automation (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `npm-trusted-publishing` | `.agents/skills/npm-trusted-publishing/SKILL.md` | Configures and troubleshoots npm trusted publishing (OIDC) in GitHub Actions without long-lived tokens. |
 
 ---
 
@@ -248,9 +254,9 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (26 Skills, 1 MCP)
 2. **💻 2. Front End Development** — 4 Subcategories (5 Skills, 1 Instruction, 1 Agent)
-3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (4 Skills, 1 MCP, 1 Instruction, 2 Agents)
+3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (4 Skills, 1 MCP, 2 Instructions, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & LLM Context** — 4 Subcategories (5 Skills, 1 Agent, 2 Instructions)
-5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 5 Subcategories (1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
+5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 6 Subcategories (1 Skill, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
 6. **🔌 6. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)
 
 ---
