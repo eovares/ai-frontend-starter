@@ -9,11 +9,11 @@
 This directory serves as the centralized, human-readable catalog and domain taxonomy for all agent capabilities within `.agents/` and workspace configurations.
 
 ```
-                                  .agents/ ARTIFACT REGISTRY (84 Resources)
+                                  .agents/ ARTIFACT REGISTRY (85 Resources)
  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                                  │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                              │
- │  26 Skills, 1 MCP (27 assets)           │  5 Skills, 1 Instruction, 1 Agent (7 assets)           │
+ │  26 Skills, 1 MCP (27 assets)           │  5 Skills, 1 MCP, 1 Inst, 1 Agent (8 assets)          │
  │                                                                                                  │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Visual Diagramming                 │
  │  5 Skills, 3 Instructions, 2 Agents,    │  9 Skills, 2 Instructions, 1 Agent (12 assets)          │
@@ -125,6 +125,11 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | **Agent** | `accessibility.md` | `.agents/agents/accessibility.md` | Lead accessibility orchestrator coordinating design tokens, component diffs, Playwright/axe tests, and runtime audits. |
 | **Instruction** | `a11y` | `.agents/instructions/a11y.md` | Comprehensive WCAG 2.2 AA accessibility standards, 38+ anti-patterns, legal compliance (EAA, ADA), and framework-specific patterns. |
 
+#### 2.5. Model Context Protocol Language Intelligence (MCP)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **MCP** | `typescript-lsp` | `.agents/mcp.json` (`typescript-language-server` bridge) | Universal TypeScript/JavaScript Language Server Protocol (LSP) bridge for code intelligence, definitions, and diagnostics. Guide: [typescript-mcp-guide.md](../docs/typescript-mcp-guide.md). |
+
 ---
 
 ### 3. 🧪 Web App Testing, Playwright & Browser QA
@@ -220,7 +225,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Schema** | `registry.schema.json` | `.agents/schemas/registry.schema.json` | JSON Schema validating the structure, metadata, and provenance of `.agents/registry.json`. |
 | **Schema** | `mcp.schema.json` | `.agents/schemas/mcp.schema.json` | JSON Schema validating MCP configuration formats and tool definitions. |
-| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 84 local and imported resources. |
+| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 85 local and imported resources. |
 
 #### 5.4. Workspace Execution Environment Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -326,7 +331,7 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (26 Skills, 1 MCP)
-2. **💻 2. Front End Development** — 4 Subcategories (5 Skills, 1 Instruction, 1 Agent)
+2. **💻 2. Front End Development** — 5 Subcategories (5 Skills, 1 MCP, 1 Instruction, 1 Agent)
 3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (5 Skills, 1 MCP, 3 Instructions, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & Visual Diagramming** — 5 Subcategories (9 Skills, 2 Instructions, 1 Agent)
 5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 8 Subcategories (10 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
