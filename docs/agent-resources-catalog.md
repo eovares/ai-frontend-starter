@@ -9,7 +9,7 @@
 This directory serves as the centralized, human-readable catalog and domain taxonomy for all agent capabilities within `.agents/` and workspace configurations.
 
 ```
-                                  .agents/ ARTIFACT REGISTRY (88 Resources)
+                                  .agents/ ARTIFACT REGISTRY (90 Resources)
  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                                  │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                              │
@@ -20,8 +20,8 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  │  2 MCPs (13 assets)                     │                                                        │
  │                                                                                                  │
  │  ⚙️ AgentOps, Governance & Workflows    │  ☁️ CI/CD, GitHub Actions & Releases                   │
- │  11 Skills, 2 Instructions, 1 Agent,    │  7 Skills (7 assets)                                   │
- │  1 Script, 2 Schemas, 1 MCP (18 assets) │                                                        │
+ │  13 Skills, 2 Instructions, 1 Agent,    │  7 Skills (7 assets)                                   │
+ │  1 Script, 2 Schemas, 1 MCP (20 assets) │                                                        │
  │                                                                                                  │
  │  🛡️ Security, SAST & Vulnerabilities    │  🔌 Extensibility Points                               │
  │  3 Skills (3 assets)                    │  Hooks (.gitkeep), Plugins, Prompts                    │
@@ -227,7 +227,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Schema** | `registry.schema.json` | `.agents/schemas/registry.schema.json` | JSON Schema validating the structure, metadata, and provenance of `.agents/registry.json`. |
 | **Schema** | `mcp.schema.json` | `.agents/schemas/mcp.schema.json` | JSON Schema validating MCP configuration formats and tool definitions. |
-| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 87 local and imported resources. |
+| **Registry** | `registry.json` | `.agents/registry.json` | Single source of provenance tracking all 90 local and imported resources. |
 
 #### 5.4. Workspace Execution Environment Tools (MCP)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -263,6 +263,12 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
 | **Skill** | `editorconfig` | `.agents/skills/editorconfig/SKILL.md` | Generates a comprehensive and best-practice-oriented .editorconfig file based on project analysis. |
+
+#### 5.9. Memory & Context (Skills)
+| Type | Resource / File | Location | Specialization & Functional Description |
+| :--- | :--- | :--- | :--- |
+| **Skill** | `remember` | `.agents/skills/remember/SKILL.md` | Transforms lessons learned into domain-organized memory instructions. |
+| **Skill** | `memory-merger` | `.agents/skills/memory-merger/SKILL.md` | Merges mature lessons from a domain memory file into its consolidated instruction file. |
 
 ---
 
@@ -337,7 +343,7 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 2. **💻 2. Front End Development** — 5 Subcategories (5 Skills, 1 MCP, 1 Instruction, 1 Agent)
 3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (6 Skills, 1 MCP, 3 Instructions, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & Visual Diagramming** — 5 Subcategories (9 Skills, 2 Instructions, 1 Agent)
-5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 8 Subcategories (11 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
+5. **⚙️ 5. AgentOps, Governance & Developer Workflows** — 9 Subcategories (13 Skills, 2 Instructions, 1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
 6. **☁️ 6. CI/CD, GitHub Actions & Release Automation** — 3 Subcategories (7 Skills)
 7. **🛡️ 7. Security, SAST & Vulnerability Management** — 2 Subcategories (3 Skills)
 8. **🔌 8. Extensibility Points** — 3 Subcategories (Hooks, Plugins, Prompts)

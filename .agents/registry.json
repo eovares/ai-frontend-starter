@@ -1107,6 +1107,47 @@
       "created_at": "2026-11-25T05:52:34.136498+00:00",
       "updated_at": "2026-11-25T05:52:34.136498+00:00",
       "description": "'Expert-level browser automation, debugging, and performance analysis using Chrome DevTools MCP. Use for interacting with web pages, capturing screenshots, analyzing network traffic, and profiling performance.'"
+    },
+    "remember": {
+      "name": "remember",
+      "type": "skill",
+      "origin": "remote",
+      "repo_url": "https://github.com/github/awesome-copilot.git",
+      "ref": "main",
+      "commit": "93fc8b9ee3ef56b9b5e7261e6ce92d314cb2c1cf",
+      "subpath": "skills/remember",
+      "target_path": ".agents/skills/remember",
+      "created_at": "2026-11-25T06:25:51.329442+00:00",
+      "updated_at": "2026-11-25T06:25:51.329442+00:00",
+      "description": "Transforms lessons learned into domain-organized memory instructions.",
+      "locally_modified": true
+    },
+    "memory-merger": {
+      "name": "memory-merger",
+      "type": "skill",
+      "origin": "remote",
+      "repo_url": "https://github.com/github/awesome-copilot.git",
+      "ref": "main",
+      "commit": "93fc8b9ee3ef56b9b5e7261e6ce92d314cb2c1cf",
+      "subpath": "skills/memory-merger",
+      "target_path": ".agents/skills/memory-merger",
+      "created_at": "2026-11-25T06:25:51.329442+00:00",
+      "updated_at": "2026-11-25T06:25:51.329442+00:00",
+      "description": "Merges mature lessons from a domain memory file into its consolidated instruction file.",
+      "locally_modified": true
+    },
+    "security-audit": {
+      "name": "security-audit",
+      "type": "skill",
+      "origin": "remote",
+      "source_url": "https://github.com/cloudflare/security-audit-skill.git",
+      "source_subpath": "skills/security-audit",
+      "ref": "main",
+      "commit": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "target_path": ".agents/skills/security-audit",
+      "created_at": "2026-11-25T06:43:05.077421+00:00",
+      "updated_at": "2026-11-25T06:43:05.077421+00:00",
+      "description": ""
     }
   }
 }
