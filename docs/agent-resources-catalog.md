@@ -13,7 +13,7 @@ This directory serves as the centralized, human-readable catalog and domain taxo
  ┌────────────────────────────────────────────────────────────────────────────────────────┐
  │                                                                                        │
  │  🎨 Design Systems & Figma Integration  │  💻 Front End Development                    │
- │  26 Skills, 1 MCP                       │  4 Skills, 1 Instruction, 1 Agent            │
+ │  26 Skills, 1 MCP                       │  5 Skills, 1 Instruction, 1 Agent            │
  │                                                                                        │
  │  🧪 Web App Testing & Playwright        │  📝 Documentation & Technical Writing        │
  │  4 Skills, 2 Agents, 1 Inst, 1 MCP       │  5 Skills, 1 Agent, 2 Instructions           │
@@ -102,6 +102,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 | :--- | :--- | :--- | :--- |
 | **Skill** | `modern-web-guidance` | `.agents/skills/modern-web-guidance/SKILL.md` | Search tool and guidelines for modern HTML/CSS/JS APIs (dialogs, popovers, container queries, view transitions, a11y). |
 | **Skill** | `web-component-specialist` | `.agents/skills/web-component-specialist/SKILL.md` | Custom elements and shadow DOM accessibility (ElementInternals, cross-shadow ARIA, delegatesFocus, slots). |
+| **Skill** | `i18n-accessibility` | `.agents/skills/i18n-accessibility/SKILL.md` | Right-to-left (RTL) layout, lang attributes, bidi text isolation, and icon mirroring accessibility. |
 
 #### 2.2. Aesthetic Direction & Visual UI Design (Skills)
 | Type | Resource / File | Location | Specialization & Functional Description |
@@ -116,7 +117,7 @@ Every resource is tracked in the provenance registry [`.agents/registry.json`](.
 #### 2.4. Web Accessibility & WCAG 2.2 Standards (Instructions & Agents)
 | Type | Resource / File | Location | Specialization & Functional Description |
 | :--- | :--- | :--- | :--- |
-| **Agent** | `accessibility.md` | `.agents/agents/accessibility.md` | Universal accessibility reviewer for component diffs, acceptance criteria, and Storybook stories across React, Angular, Vue, Web Components, Lit, and TypeScript. |
+| **Agent** | `accessibility.md` | `.agents/agents/accessibility.md` | Lead accessibility orchestrator coordinating design tokens, component diffs, Playwright/axe tests, and runtime audits. |
 | **Instruction** | `a11y` | `.agents/instructions/a11y.md` | Comprehensive WCAG 2.2 AA accessibility standards, 38+ anti-patterns, legal compliance (EAA, ADA), and framework-specific patterns. |
 
 ---
@@ -246,7 +247,7 @@ The workspace uses a **two-tier hierarchical taxonomy** to organize agent capabi
 
 ### Active Workspace Categories
 1. **🎨 1. Design Systems & Figma Integration (Design ↔ Code)** — 8 Subcategories (26 Skills, 1 MCP)
-2. **💻 2. Front End Development** — 4 Subcategories (4 Skills, 1 Instruction, 1 Agent)
+2. **💻 2. Front End Development** — 4 Subcategories (5 Skills, 1 Instruction, 1 Agent)
 3. **🧪 3. Web App Testing, Playwright & Browser QA** — 5 Subcategories (4 Skills, 1 MCP, 1 Instruction, 2 Agents)
 4. **📝 4. Documentation, Technical Writing & LLM Context** — 4 Subcategories (5 Skills, 1 Agent, 2 Instructions)
 5. **⚙️ 5. AgentOps, Governance & Workspace Architecture** — 5 Subcategories (1 Agent, 1 Script, 2 Schemas, 1 MCP, Registry & Policies)
